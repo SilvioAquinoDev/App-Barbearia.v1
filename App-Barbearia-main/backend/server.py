@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -50,7 +50,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3001"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -81,3 +81,15 @@ async def root():
         "docs": "/docs",
         "health": "/api/health"
     }
+
+@app.post("/api/auth/callback")
+async def auth_callback(request: Request):
+    data = await request.json()
+    session_id = data.get("session_id")
+    # Aqui você deve validar o session_id e buscar o usuário
+    # Exemplo de resposta de sucesso:
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID não informado")
+    # TODO: validar session_id e buscar usuário real
+    # Retorne o token real do usuário autenticado
+    return {"session_token": f"token_para_{session_id}"}
