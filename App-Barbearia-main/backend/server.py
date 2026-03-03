@@ -7,8 +7,9 @@ import logging
 
 from database import init_db, close_db
 from config import get_settings
-from routes import auth_routes, service_routes, product_routes, appointment_routes
+from routes import auth_routes, service_routes, product_routes, appointment_routes, public_appointments_routes
 from routes import cash_register_routes, service_history_routes, push_token_routes
+
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
@@ -50,7 +51,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["http://localhost:3001"],
+    allow_origins=["http://localhost:3001", "http://10.0.0.173:3001"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -63,6 +64,7 @@ app.include_router(appointment_routes.router, prefix="/api")
 app.include_router(cash_register_routes.router, prefix="/api")
 app.include_router(service_history_routes.router, prefix="/api")
 app.include_router(push_token_routes.router, prefix="/api")
+app.include_router(public_appointments_routes.router, prefix="/api")
 
 @app.get("/api/health")
 async def health_check():

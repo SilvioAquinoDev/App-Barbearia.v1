@@ -13,6 +13,8 @@ import History from './pages/History'
 import Promotions from './pages/Promotions'
 import Loyalty from './pages/Loyalty'
 import AuthCallback from './pages/AuthCallback'
+import PublicBooking from './pages/PublicBooking';
+import BookingConfirmation from './pages/BookingConfirmation';
 
 // Components
 import Loading from './components/Loading'
@@ -34,6 +36,8 @@ function App() {
       <Route path="/registrar" element={<Register />} />
       <Route path="/auth-callback" element={<React.Suspense fallback={<Loading />}><AuthCallback /></React.Suspense>} />
       {/*<Route path="/agendar" element={<BookingTest />} />*/}
+      <Route path="/agendar-publico" element={<PublicBooking />} />
+      <Route path="/agendamento-concluido" element={<BookingConfirmation />} />
 
       {/* Private Routes */}
       <Route
