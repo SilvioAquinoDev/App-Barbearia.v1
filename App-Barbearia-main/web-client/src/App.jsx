@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Booking from './pages/Booking'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import AuthCallback from './pages/AuthCallback'
 import Dashboard from './pages/Dashboard'
 import History from './pages/History'
 import Promotions from './pages/Promotions'
@@ -30,6 +31,7 @@ function App() {
       <Route path="/agendar" element={<Booking />} />
       <Route path="/login" element={<Login />} />
       <Route path="/registrar" element={<Register />} />
+      <Route path="/auth-callback" element={<AuthCallback />} />
 
       {/* Private Routes */}
       <Route

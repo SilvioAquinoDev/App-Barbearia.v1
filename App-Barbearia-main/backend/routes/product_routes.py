@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
+import base64
+import uuid
+from pathlib import Path
 
 from database import get_db
 from auth import get_current_barber
@@ -9,6 +13,14 @@ from models import Product
 from schemas import ProductCreate, ProductUpdate, ProductResponse
 
 router = APIRouter(prefix="/products", tags=["products"])
+
+UPLOAD_DIR = Path(__file__).parent.parent / "uploads" / "products"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+class ImageUpload(BaseModel):
+    image_data: str  # base64 encoded
+    filename: Optional[str] = None
 
 @router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 async def create_product(
@@ -114,3 +126,81 @@ async def delete_product(
     await db.commit()
     
     return {"message": "Product deleted successfully"}
+
+@router.put("/{product_id}/toggle-active", response_model=ProductResponse)
+async def toggle_product_active(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_barber)
+):
+    """Toggle product active status"""
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    product.is_active = not product.is_active
+    await db.commit()
+    await db.refresh(product)
+    return product
+
+
+@router.post("/upload-image")
+async def upload_product_image(
+    data: ImageUpload,
+    current_user=Depends(get_current_barber),
+):
+    """Upload a product image, returns the URL path"""
+    try:
+        # Remove data URI prefix if present
+        image_b64 = data.image_data
+        if "," in image_b64:
+            image_b64 = image_b64.split(",", 1)[1]
+
+        image_bytes = base64.b64decode(image_b64)
+        ext = "jpg"
+        if image_bytes[:4] == b"\x89PNG":
+            ext = "png"
+        elif image_bytes[:4] == b"RIFF":
+            ext = "webp"
+
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        filepath = UPLOAD_DIR / filename
+        filepath.write_bytes(image_bytes)
+
+        image_url = f"/api/uploads/products/{filename}"
+        return {"image_url": image_url}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao salvar imagem: {str(e)}")
+
+
+@router.post("/{product_id}/sell")
+async def sell_product(
+    product_id: int,
+    quantity: int = 1,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_barber)
+):
+    """Sell a product (reduce stock, record sale in DB)"""
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if product.stock < quantity:
+        raise HTTPException(status_code=400, detail=f"Estoque insuficiente. Disponível: {product.stock}")
+    product.stock -= quantity
+    total = float(product.price) * quantity
+    
+    # Save sale record
+    from models import ProductSale
+    sale = ProductSale(
+        product_id=product_id,
+        barber_id=current_user.user_id,
+        quantity=quantity,
+        unit_price=float(product.price),
+        total_price=total,
+    )
+    db.add(sale)
+    await db.commit()
+    await db.refresh(product)
+    return {"message": f"Venda registrada: {quantity}x {product.name}", "total": total, "remaining_stock": product.stock}
+

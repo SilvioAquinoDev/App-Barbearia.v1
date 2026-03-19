@@ -1,67 +1,70 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
-import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
 
-export default function Login() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const [loading, setLoading] = useState(false);
+const AUTH_URL = 'https://auth.emergentagent.com';
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      // Redirect to Emergent OAuth
-      const redirectUrl = window.location.origin + '/auth-callback';
-      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-      window.location.href = authUrl;
-    } catch (error) {
-      alert('Erro ao fazer login. Tente novamente.');
-      setLoading(false);
-    }
+export default function Login() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // If already logged in, redirect to dashboard
+  if (user) {
+    navigate('/dashboard');
+    return null;
+  }
+
+  const handleGoogleLogin = () => {
+    const redirectUrl = `${window.location.origin}/auth-callback`;
+    const authUrl = `${AUTH_URL}/?redirect=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = authUrl;
   };
 
   return (
-    <div className="auth-page">
+    <div className="login-page">
       <Navbar />
-      
-      <div className="auth-container">
-        <Card className="auth-card">
-          <div className="auth-header">
-            <h1>Entrar</h1>
-            <p>Acesse sua conta para ver histórico, promoções e fidelidade</p>
+      <div className="login-container">
+        <Card className="login-card">
+          <div className="login-header">
+            <h1>Área do Cliente</h1>
+            <p>Faça login para acessar seus benefícios exclusivos</p>
           </div>
 
-          <button
-            className="google-button"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20">
-              <path fill="#4285F4" d="M19.6 10.23c0-.82-.1-1.42-.25-2.05H10v3.72h5.5c-.15.96-.74 2.31-2.04 3.22v2.45h3.16c1.89-1.73 2.98-4.3 2.98-7.34z"/>
-              <path fill="#34A853" d="M13.46 15.13c-.83.59-1.96 1-3.46 1-2.64 0-4.88-1.74-5.68-4.15H1.07v2.52C2.72 17.75 6.09 20 10 20c2.7 0 4.96-.89 6.62-2.42l-3.16-2.45z"/>
-              <path fill="#FBBC05" d="M3.99 10c0-.69.12-1.35.32-1.97V5.51H1.07A9.973 9.973 0 000 10c0 1.61.39 3.14 1.07 4.49l3.24-2.52c-.2-.62-.32-1.28-.32-1.97z"/>
-              <path fill="#EA4335" d="M10 3.88c1.88 0 3.13.81 3.85 1.48l2.84-2.76C14.96.99 12.7 0 10 0 6.09 0 2.72 2.25 1.07 5.51l3.24 2.52C5.12 5.62 7.36 3.88 10 3.88z"/>
+          <div className="login-benefits">
+            <div className="benefit-item">
+              <span className="benefit-icon">🎁</span>
+              <span>Programa de Fidelidade</span>
+            </div>
+            <div className="benefit-item">
+              <span className="benefit-icon">📊</span>
+              <span>Histórico de Serviços</span>
+            </div>
+            <div className="benefit-item">
+              <span className="benefit-icon">🏷️</span>
+              <span>Promoções Exclusivas</span>
+            </div>
+          </div>
+
+          <button className="google-login-btn" onClick={handleGoogleLogin}>
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            {loading ? 'Entrando...' : 'Entrar com Google'}
+            Entrar com Google
           </button>
 
-          <div className="auth-divider">
+          <div className="login-divider">
             <span>ou</span>
           </div>
 
-          <div className="demo-info">
-            <p>ℹ️ Para demo, use o botão acima para fazer login com Google</p>
-          </div>
-
-          <div className="auth-footer">
-            <p>
-              Não tem uma conta?{' '}
-              <Link to="/registrar">Cadastre-se</Link>
-            </p>
-          </div>
+          <Link to="/agendar" className="public-booking-link">
+            Agendar sem fazer login
+          </Link>
         </Card>
       </div>
     </div>

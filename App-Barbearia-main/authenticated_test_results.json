@@ -1,0 +1,172 @@
+{
+  "health_check": {
+    "status": "PASS",
+    "response": {
+      "status": "healthy",
+      "service": "Barbershop Manager API",
+      "version": "1.0.0"
+    }
+  },
+  "auth_endpoints": {
+    "get_me": {
+      "status": "PASS",
+      "response": {
+        "user_id": "test_barber_001",
+        "email": "testbarber@test.com",
+        "name": "Test Barber",
+        "picture": null,
+        "role": "barber",
+        "phone": null,
+        "created_at": "2026-03-01T02:38:27.451083"
+      }
+    },
+    "promote_to_barber": {
+      "status": "PASS",
+      "response": {
+        "user_id": "test_barber_001",
+        "email": "testbarber@test.com",
+        "name": "Test Barber",
+        "picture": null,
+        "role": "barber",
+        "phone": null,
+        "created_at": "2026-03-01T02:38:27.451083"
+      }
+    },
+    "create_session_fake": {
+      "status": "PASS",
+      "note": "Correctly returned 401 for fake session_id"
+    }
+  },
+  "services_endpoints": {
+    "get_services": {
+      "status": "PASS",
+      "response": "Returned 1 services"
+    },
+    "create_service": {
+      "status": "PASS",
+      "service_id": 2,
+      "response": {
+        "id": 2,
+        "name": "Corte Masculino",
+        "description": "Corte de cabelo masculino completo",
+        "price": 50.0,
+        "duration_minutes": 30,
+        "is_active": true,
+        "created_at": "2026-03-01T02:40:24.123636",
+        "updated_at": "2026-03-01T02:40:24.123639"
+      }
+    },
+    "get_service_by_id": {
+      "status": "PASS",
+      "response": {
+        "id": 2,
+        "name": "Corte Masculino",
+        "description": "Corte de cabelo masculino completo",
+        "price": 50.0,
+        "duration_minutes": 30,
+        "is_active": true,
+        "created_at": "2026-03-01T02:40:24.123636",
+        "updated_at": "2026-03-01T02:40:24.123639"
+      }
+    },
+    "update_service": {
+      "status": "PASS",
+      "response": {
+        "id": 2,
+        "name": "Corte Masculino Premium",
+        "description": "Corte de cabelo masculino completo",
+        "price": 60.0,
+        "duration_minutes": 30,
+        "is_active": true,
+        "created_at": "2026-03-01T02:40:24.123636",
+        "updated_at": "2026-03-01T02:40:25.397475"
+      }
+    },
+    "delete_service": {
+      "status": "PASS",
+      "response": {
+        "message": "Service deleted successfully"
+      }
+    }
+  },
+  "products_endpoints": {
+    "get_products": {
+      "status": "PASS",
+      "response": "Returned 0 products"
+    },
+    "create_product": {
+      "status": "PASS",
+      "product_id": 1,
+      "response": {
+        "id": 1,
+        "name": "Gel Fixador",
+        "description": "Gel para cabelo com fixa\u00e7\u00e3o forte",
+        "price": 25.0,
+        "stock": 10,
+        "is_active": true,
+        "created_at": "2026-03-01T02:40:27.277138",
+        "updated_at": "2026-03-01T02:40:27.277139"
+      }
+    },
+    "get_product_by_id": {
+      "status": "PASS",
+      "response": {
+        "id": 1,
+        "name": "Gel Fixador",
+        "description": "Gel para cabelo com fixa\u00e7\u00e3o forte",
+        "price": 25.0,
+        "stock": 10,
+        "is_active": true,
+        "created_at": "2026-03-01T02:40:27.277138",
+        "updated_at": "2026-03-01T02:40:27.277139"
+      }
+    }
+  },
+  "appointments_endpoints": {
+    "get_appointments": {
+      "status": "PASS",
+      "response": "Returned 0 appointments"
+    },
+    "create_appointment": {
+      "status": "PASS",
+      "appointment_id": 1,
+      "response": {
+        "id": 1,
+        "client_id": "test_barber_001",
+        "service_id": 2,
+        "scheduled_time": "2026-03-15T10:00:00",
+        "status": "pending",
+        "notes": null,
+        "notification_sent": false,
+        "created_at": "2026-03-01T02:40:29.319145",
+        "updated_at": "2026-03-01T02:40:29.319146"
+      }
+    }
+  },
+  "cash_register_endpoints": {
+    "get_current": {
+      "status": "PASS",
+      "response": {
+        "id": 1,
+        "barber_id": "test_barber_001",
+        "opened_at": "2026-03-01T02:39:33.684942",
+        "closed_at": null,
+        "opening_balance": 100.0,
+        "closing_balance": null,
+        "total_services": 0.0,
+        "total_products": 0.0,
+        "status": "open"
+      }
+    },
+    "open_register": {
+      "status": "PASS",
+      "note": "Cash register already open (400 expected)"
+    }
+  },
+  "summary": {
+    "total_tests": 16,
+    "passed": 16,
+    "failed": 0,
+    "errors": 0
+  }
+}

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaPro - Sistema Completo para Barbearias e Saloes</title>
+  <meta name="description" content="Gerencie sua barbearia ou salao de beleza com o sistema mais completo do mercado. Agendamentos, caixa, fidelidade, WhatsApp e muito mais.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-primary: #0A0E1A;
+      --bg-secondary: #111827;
+      --bg-card: #1A1F35;
+      --bg-card-hover: #222845;
+      --accent: #3B82F6;
+      --accent-light: #60A5FA;
+      --accent-glow: rgba(59, 130, 246, 0.3);
+      --success: #10B981;
+      --warning: #F59E0B;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --border: #1E293B;
+      --gradient-1: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+      --gradient-2: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
+      --gradient-text: linear-gradient(135deg, #60A5FA 0%, #A78BFA 50%, #34D399 100%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(10, 14, 26, 0.85);
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .navbar .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 72px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 22px; font-weight: 800; text-decoration: none; color: var(--text-primary);
+    }
+    .nav-logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--gradient-1); display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: white;
+    }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      background: var(--gradient-1); color: white; border: none;
+      padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none;
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 30px var(--accent-glow); }
+    .nav-mobile-toggle { display: none; background: none; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; }
+
+    /* ===== HERO ===== */
+    .hero {
+      padding: 140px 0 80px; position: relative; overflow: hidden;
+      min-height: 90vh; display: flex; align-items: center;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+      animation: heroGlow 15s ease-in-out infinite;
+    }
+    @keyframes heroGlow {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-2%, 2%) rotate(3deg); }
+    }
+    .hero .container { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .hero-content { max-width: 560px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2);
+      padding: 6px 16px; border-radius: 100px; font-size: 13px; color: var(--accent-light);
+      margin-bottom: 24px; font-weight: 500;
+    }
+    .hero-badge i { font-size: 10px; }
+    .hero h1 {
+      font-size: 52px; font-weight: 900; line-height: 1.1; margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 .gradient-text {
+      background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 18px; color: var(--text-secondary); margin-bottom: 36px; line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--gradient-1); color: white; border: none;
+      padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px var(--accent-glow); }
+    .btn-secondary {
+      background: transparent; color: var(--text-primary); border: 1.5px solid var(--border);
+      padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .btn-secondary:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
+    .hero-stats { display: flex; gap: 40px; }
+    .hero-stat-value { font-size: 28px; font-weight: 800; color: var(--text-primary); }
+    .hero-stat-label { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .hero-image { position: relative; }
+    .hero-image img {
+      width: 100%; border-radius: 16px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.4); border: 1px solid var(--border);
+    }
+    .hero-image::after {
+      content: ''; position: absolute; inset: -1px; border-radius: 16px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.3), transparent, rgba(139,92,246,0.2));
+      z-index: -1; filter: blur(20px);
+    }
+
+    /* ===== SOCIAL PROOF ===== */
+    .social-proof {
+      padding: 60px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+    }
+    .proof-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center; }
+    .proof-number { font-size: 36px; font-weight: 900; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .proof-label { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ===== FEATURES ===== */
+    .features { padding: 100px 0; }
+    .section-header { text-align: center; max-width: 640px; margin: 0 auto 60px; }
+    .section-tag {
+      font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--accent-light); margin-bottom: 16px;
+    }
+    .section-title { font-size: 38px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.01em; }
+    .section-subtitle { font-size: 16px; color: var(--text-secondary); line-height: 1.7; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 32px; transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-4px); background: var(--bg-card-hover); }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--gradient-1); opacity: 0; transition: opacity 0.3s;
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 20px;
+    }
+    .feature-icon.blue { background: rgba(59,130,246,0.15); color: #60A5FA; }
+    .feature-icon.green { background: rgba(16,185,129,0.15); color: #34D399; }
+    .feature-icon.purple { background: rgba(139,92,246,0.15); color: #A78BFA; }
+    .feature-icon.orange { background: rgba(245,158,11,0.15); color: #FBBF24; }
+    .feature-icon.pink { background: rgba(236,72,153,0.15); color: #F472B6; }
+    .feature-icon.teal { background: rgba(20,184,166,0.15); color: #2DD4BF; }
+    .feature-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ===== HOW IT WORKS ===== */
+    .how-it-works { padding: 100px 0; background: var(--bg-secondary); }
+    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 60px; }
+    .step-card { text-align: center; position: relative; }
+    .step-number {
+      width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 20px;
+      background: var(--gradient-1); display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 900; color: white;
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+    .step-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .step-desc { font-size: 14px; color: var(--text-secondary); max-width: 300px; margin: 0 auto; line-height: 1.6; }
+    .step-connector {
+      position: absolute; top: 32px; left: calc(50% + 40px); width: calc(100% - 80px);
+      height: 2px; background: var(--border);
+    }
+    .step-card:last-child .step-connector { display: none; }
+
+    /* ===== APP SHOWCASE ===== */
+    .showcase { padding: 100px 0; }
+    .showcase .container { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .showcase-image img {
+      width: 100%; border-radius: 16px; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+    }
+    .showcase-features { list-style: none; margin-top: 32px; }
+    .showcase-features li {
+      display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;
+      font-size: 15px; color: var(--text-secondary);
+    }
+    .showcase-features li i { color: var(--success); margin-top: 4px; font-size: 16px; }
+    .showcase-features li strong { color: var(--text-primary); }
+
+    /* ===== PRICING ===== */
+    .pricing { padding: 100px 0; background: var(--bg-secondary); }
+    .pricing-toggle { display: flex; justify-content: center; gap: 12px; margin-bottom: 48px; align-items: center; }
+    .pricing-toggle span { font-size: 14px; color: var(--text-secondary); }
+    .pricing-toggle .active { color: var(--text-primary); font-weight: 600; }
+    .toggle-switch {
+      width: 48px; height: 26px; background: var(--border); border-radius: 13px;
+      position: relative; cursor: pointer; transition: background 0.3s;
+    }
+    .toggle-switch.active { background: var(--accent); }
+    .toggle-switch::after {
+      content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%;
+      background: white; top: 3px; left: 3px; transition: transform 0.3s;
+    }
+    .toggle-switch.active::after { transform: translateX(22px); }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 36px; position: relative; transition: all 0.3s;
+    }
+    .price-card:hover { transform: translateY(-4px); }
+    .price-card.featured {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, rgba(59,130,246,0.08) 0%, var(--bg-card) 100%);
+    }
+    .price-card.featured::before {
+      content: 'MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--gradient-1); color: white; font-size: 11px; font-weight: 700;
+      padding: 4px 16px; border-radius: 100px; letter-spacing: 1px;
+    }
+    .price-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .price-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+    .price-amount { font-size: 48px; font-weight: 900; letter-spacing: -0.02em; }
+    .price-amount span { font-size: 16px; font-weight: 400; color: var(--text-muted); }
+    .price-period { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+    .price-features { list-style: none; margin-bottom: 32px; }
+    .price-features li {
+      display: flex; align-items: center; gap: 10px; padding: 8px 0;
+      font-size: 14px; color: var(--text-secondary);
+    }
+    .price-features li i { font-size: 14px; }
+    .price-features li i.fa-check { color: var(--success); }
+    .price-features li i.fa-xmark { color: var(--text-muted); }
+    .price-features li.disabled { color: var(--text-muted); }
+    .price-btn {
+      width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.3s; text-align: center; text-decoration: none; display: block;
+    }
+    .price-btn.primary { background: var(--gradient-1); color: white; border: none; }
+    .price-btn.primary:hover { box-shadow: 0 8px 30px var(--accent-glow); }
+    .price-btn.outline { background: transparent; color: var(--text-primary); border: 1.5px solid var(--border); }
+    .price-btn.outline:hover { border-color: var(--accent); }
+
+    .price-single {
+      text-align: center; margin-top: 48px; padding: 32px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+    }
+    .price-single h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .price-single p { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+    .price-single .price-amount { font-size: 36px; }
+
+    /* ===== TESTIMONIALS ===== */
+    .testimonials { padding: 100px 0; }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testimonial-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    }
+    .testimonial-stars { color: #FBBF24; margin-bottom: 16px; font-size: 14px; }
+    .testimonial-text { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .testimonial-avatar {
+      width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-1);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
+    }
+    .testimonial-name { font-size: 14px; font-weight: 600; }
+    .testimonial-role { font-size: 12px; color: var(--text-muted); }
+
+    /* ===== FAQ ===== */
+    .faq { padding: 100px 0; background: var(--bg-secondary); }
+    .faq-grid { max-width: 720px; margin: 0 auto; }
+    .faq-item {
+      border-bottom: 1px solid var(--border); overflow: hidden;
+    }
+    .faq-question {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0; background: none; border: none; color: var(--text-primary);
+      font-size: 16px; font-weight: 600; cursor: pointer; text-align: left;
+    }
+    .faq-question i { color: var(--accent); transition: transform 0.3s; font-size: 14px; }
+    .faq-question.active i { transform: rotate(180deg); }
+    .faq-answer {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s;
+    }
+    .faq-answer.open { max-height: 200px; padding-bottom: 20px; }
+    .faq-answer p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+
+    /* ===== CTA ===== */
+    .cta {
+      padding: 100px 0; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.12) 0%, transparent 60%);
+    }
+    .cta .container { position: relative; z-index: 2; }
+    .cta h2 { font-size: 42px; font-weight: 900; margin-bottom: 16px; }
+    .cta p { font-size: 18px; color: var(--text-secondary); margin-bottom: 36px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+    /* ===== FOOTER ===== */
+    .footer { padding: 60px 0 30px; border-top: 1px solid var(--border); }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .footer-brand p { color: var(--text-muted); font-size: 14px; margin-top: 12px; line-height: 1.6; max-width: 300px; }
+    .footer-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 10px; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent-light); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--border); }
+    .footer-bottom p { font-size: 13px; color: var(--text-muted); }
+    .footer-social { display: flex; gap: 16px; }
+    .footer-social a { color: var(--text-muted); font-size: 18px; transition: color 0.2s; text-decoration: none; }
+    .footer-social a:hover { color: var(--accent-light); }
+
+    /* ===== ANIMATIONS ===== */
+    .fade-in { opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+    .fade-in-delay-1 { transition-delay: 0.1s; }
+    .fade-in-delay-2 { transition-delay: 0.2s; }
+    .fade-in-delay-3 { transition-delay: 0.3s; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 968px) {
+      .hero .container { grid-template-columns: 1fr; text-align: center; }
+      .hero h1 { font-size: 36px; }
+      .hero-actions { justify-content: center; }
+      .hero-stats { justify-content: center; }
+      .hero-image { order: -1; max-width: 500px; margin: 0 auto; }
+      .hero-content { max-width: 100%; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+      .testimonials-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+      .showcase .container { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .step-connector { display: none; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .proof-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+      .nav-mobile-toggle { display: block; }
+    }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 28px; }
+      .hero { padding-top: 100px; min-height: auto; }
+      .features-grid { grid-template-columns: 1fr; }
+      .section-title { font-size: 28px; }
+      .cta h2 { font-size: 28px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .price-card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-icon"><i class="fas fa-calendar-check"></i></div>
+        AgendaPro
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Funcionalidades</a></li>
+        <li><a href="#como-funciona">Como Funciona</a></li>
+        <li><a href="#precos">Precos</a></li>
+        <li><a href="#depoimentos">Depoimentos</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <a href="#precos" class="nav-cta">Comece Gratis <i class="fas fa-arrow-right"></i></a>
+      <button class="nav-mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i class="fas fa-circle"></i> Novo: Dark Mode + WhatsApp Integrado
+        </div>
+        <h1>
+          Sua barbearia no
+          <span class="gradient-text">piloto automatico</span>
+        </h1>
+        <p class="hero-subtitle">
+          Sistema completo para gestao de barbearias, saloes de beleza e clinicas de estetica.
+          Agendamentos, caixa, fidelidade e WhatsApp em um so lugar.
+        </p>
+        <div class="hero-actions">
+          <a href="#precos" class="btn-primary">
+            <i class="fas fa-rocket"></i> Testar 14 Dias Gratis
+          </a>
+          <a href="#como-funciona" class="btn-secondary">
+            <i class="fas fa-play-circle"></i> Ver Demo
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-value">500+</div>
+            <div class="hero-stat-label">Estabelecimentos</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">50k+</div>
+            <div class="hero-stat-label">Agendamentos/mes</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">98%</div>
+            <div class="hero-stat-label">Satisfacao</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-image fade-in">
+        <img src="https://static.prod-images.emergentagent.com/jobs/d5dfd045-cede-4676-929c-3eb5b85cf440/images/68a8d588fa6e7c2966bb27622eaee1e234931f48b24090d5df31b15845f3e725.png" alt="AgendaPro Dashboard" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <section class="social-proof">
+    <div class="container">
+      <div class="proof-grid">
+        <div class="fade-in">
+          <div class="proof-number">500+</div>
+          <div class="proof-label">Barbearias e saloes ativos</div>
+        </div>
+        <div class="fade-in fade-in-delay-1">
+          <div class="proof-number">50.000+</div>
+          <div class="proof-label">Agendamentos por mes</div>
+        </div>
+        <div class="fade-in fade-in-delay-2">
+          <div class="proof-number">R$ 2M+</div>
+          <div class="proof-label">Faturamento gerenciado</div>
+        </div>
+        <div class="fade-in fade-in-delay-3">
+          <div class="proof-number">4.9/5</div>
+          <div class="proof-label">Avaliacao na Play Store</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header fade-in">
+        <div class="section-tag">Funcionalidades</div>
+        <h2 class="section-title">Tudo que voce precisa em um so app</h2>
+        <p class="section-subtitle">Do agendamento ao fechamento do caixa, gerencie tudo pelo celular ou computador.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card fade-in">
+          <div class="feature-icon blue"><i class="fas fa-calendar-alt"></i></div>
+          <h3 class="feature-title">Agendamento Online</h3>
+          <p class="feature-desc">Clientes agendam 24h pelo site ou link. Confirmacao automatica por WhatsApp. Sem ligacoes.</p>
+        </div>
+        <div class="feature-card fade-in fade-in-delay-1">
+          <div class="feature-icon green"><i class="fab fa-whatsapp"></i></div>
+          <h3 class="feature-title">WhatsApp Integrado</h3>
+          <p class="feature-desc">Lembretes automaticos, confirmacoes e resumo diario. Conecte via QR Code em segundos.</p>
+        </div>
+        <div class="feature-card fade-in fade-in-delay-2">
+          <div class="feature-icon purple"><i class="fas fa-cash-register"></i></div>
+          <h3 class="feature-title">Caixa Registradora</h3>
+          <p class="feature-desc">Controle de abertura/fechamento, servicos, produtos e vendas. Tudo rastreado automaticamente.</p>
+        </div>
+        <div class="feature-card fade-in fade-in-delay-3">
+          <div class="feature-icon orange"><i class="fas fa-star"></i></div>
+          <h3 class="feature-title">Programa de Fidelidade</h3>
+          <p class="feature-desc">Clientes acumulam pontos automaticamente. Configure a recompensa e o sistema faz o resto.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <div class="feature-icon pink"><i class="fas fa-chart-line"></i></div>
+          <h3 class="feature-title">Relatorios Financeiros</h3>
+          <p class="feature-desc">Faturamento diario, semanal e mensal. Top servicos, graficos e metricas de crescimento.</p>
+        </div>
+        <div class="feature-card fade-in fade-in-delay-1">
+          <div class="feature-icon teal"><i class="fas fa-mobile-alt"></i></div>
+          <h3 class="feature-title">App Mobile Nativo</h3>
+          <p class="feature-desc">App dedicado para o profissional. Gerencie tudo pelo celular, com dark mode e interface intuitiva.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works" id="como-funciona">
+    <div class="container">
+      <div class="section-header fade-in">
+        <div class="section-tag">Como Funciona</div>
+        <h2 class="section-title">Comece em 3 minutos</h2>
+        <p class="section-subtitle">Configure seu estabelecimento e comece a receber agendamentos hoje mesmo.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card fade-in">
+          <div class="step-connector"></div>
+          <div class="step-number">1</div>
+          <h3 class="step-title">Cadastre-se</h3>
+          <p class="step-desc">Crie sua conta com Google ou email. Informe o nome do seu estabelecimento e pronto.</p>
+        </div>
+        <div class="step-card fade-in fade-in-delay-1">
+          <div class="step-connector"></div>
+          <div class="step-number">2</div>
+          <h3 class="step-title">Configure</h3>
+          <p class="step-desc">Adicione seus servicos, precos e horarios de atendimento. O assistente guia cada passo.</p>
+        </div>
+        <div class="step-card fade-in fade-in-delay-2">
+          <div class="step-number">3</div>
+          <h3 class="step-title">Compartilhe</h3>
+          <p class="step-desc">Envie seu link de agendamento para clientes via WhatsApp ou redes sociais. Facil assim.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APP SHOWCASE -->
+  <section class="showcase" id="showcase">
+    <div class="container">
+      <div class="showcase-image fade-in">
+        <img src="https://static.prod-images.emergentagent.com/jobs/d5dfd045-cede-4676-929c-3eb5b85cf440/images/fbfa45a69961e66697b584ef2d2b80325e058b2dab9315394f3d9a3c4f7bacb0.png" alt="AgendaPro Mobile App" loading="lazy">
+      </div>
+      <div class="fade-in">
+        <div class="section-tag">App Mobile</div>
+        <h2 class="section-title">Gerencie de qualquer lugar</h2>
+        <p class="section-subtitle" style="text-align:left">O app mobile foi feito para o dia a dia do profissional. Rapido, intuitivo e com tudo na palma da mao.</p>
+        <ul class="showcase-features">
+          <li><i class="fas fa-check-circle"></i><span><strong>Dashboard inteligente</strong> com agendamentos do dia e metricas em tempo real</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Confirmacao com um toque</strong> - confirme, cancele ou conclua agendamentos</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Caixa registradora</strong> com abertura/fechamento e controle total</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Dark mode</strong> para uso noturno sem cansar os olhos</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Offline first</strong> - funciona mesmo com internet instavel</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing" id="precos">
+    <div class="container">
+      <div class="section-header fade-in">
+        <div class="section-tag">Precos</div>
+        <h2 class="section-title">Planos que cabem no seu bolso</h2>
+        <p class="section-subtitle">Comece gratis por 14 dias. Sem cartao de credito. Cancele quando quiser.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- BASICO -->
+        <div class="price-card fade-in">
+          <div class="price-name">Basico</div>
+          <div class="price-desc">Para quem esta comecando</div>
+          <div class="price-amount">R$ 49<span>/mes</span></div>
+          <div class="price-period">ou R$ 470/ano (20% off)</div>
+          <ul class="price-features">
+            <li><i class="fas fa-check"></i> 1 profissional</li>
+            <li><i class="fas fa-check"></i> Agendamentos ilimitados</li>
+            <li><i class="fas fa-check"></i> Caixa registradora</li>
+            <li><i class="fas fa-check"></i> Pagina de agendamento</li>
+            <li><i class="fas fa-check"></i> App mobile</li>
+            <li class="disabled"><i class="fas fa-xmark"></i> WhatsApp integrado</li>
+            <li class="disabled"><i class="fas fa-xmark"></i> Programa de fidelidade</li>
+            <li class="disabled"><i class="fas fa-xmark"></i> Relatorios avancados</li>
+          </ul>
+          <a href="#" class="price-btn outline">Comecar Gratis</a>
+        </div>
+
+        <!-- PROFISSIONAL -->
+        <div class="price-card featured fade-in fade-in-delay-1">
+          <div class="price-name">Profissional</div>
+          <div class="price-desc">O mais escolhido</div>
+          <div class="price-amount">R$ 99<span>/mes</span></div>
+          <div class="price-period">ou R$ 950/ano (20% off)</div>
+          <ul class="price-features">
+            <li><i class="fas fa-check"></i> Ate 3 profissionais</li>
+            <li><i class="fas fa-check"></i> Agendamentos ilimitados</li>
+            <li><i class="fas fa-check"></i> Caixa registradora</li>
+            <li><i class="fas fa-check"></i> Pagina personalizada</li>
+            <li><i class="fas fa-check"></i> App mobile</li>
+            <li><i class="fas fa-check"></i> WhatsApp integrado</li>
+            <li><i class="fas fa-check"></i> Programa de fidelidade</li>
+            <li><i class="fas fa-check"></i> Relatorios financeiros</li>
+          </ul>
+          <a href="#" class="price-btn primary">Comecar Gratis</a>
+        </div>
+
+        <!-- PREMIUM -->
+        <div class="price-card fade-in fade-in-delay-2">
+          <div class="price-name">Premium</div>
+          <div class="price-desc">Para grandes equipes</div>
+          <div class="price-amount">R$ 199<span>/mes</span></div>
+          <div class="price-period">ou R$ 1.910/ano (20% off)</div>
+          <ul class="price-features">
+            <li><i class="fas fa-check"></i> Profissionais ilimitados</li>
+            <li><i class="fas fa-check"></i> Tudo do Profissional</li>
+            <li><i class="fas fa-check"></i> Pagamento online (Pix)</li>
+            <li><i class="fas fa-check"></i> Marca propria (white-label)</li>
+            <li><i class="fas fa-check"></i> Suporte prioritario</li>
+            <li><i class="fas fa-check"></i> Multi-unidades</li>
+            <li><i class="fas fa-check"></i> API personalizada</li>
+            <li><i class="fas fa-check"></i> Treinamento dedicado</li>
+          </ul>
+          <a href="#" class="price-btn outline">Comecar Gratis</a>
+        </div>
+      </div>
+
+      <div class="price-single fade-in">
+        <h3><i class="fas fa-shopping-cart"></i> Prefere comprar o sistema?</h3>
+        <p>Adquira a licenca completa com instalacao e 3 meses de suporte inclusos.</p>
+        <div class="price-amount">A partir de R$ 2.500</div>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Pagamento unico. Sem mensalidade. Seu para sempre.</p>
+        <a href="#" class="btn-primary" style="margin-top:20px;display:inline-flex">
+          <i class="fas fa-envelope"></i> Solicitar Orcamento
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" id="depoimentos">
+    <div class="container">
+      <div class="section-header fade-in">
+        <div class="section-tag">Depoimentos</div>
+        <h2 class="section-title">O que nossos clientes dizem</h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="testimonial-text">"Antes eu perdia cliente porque esquecia de confirmar. Agora o sistema faz tudo sozinho pelo WhatsApp. Meu faturamento subiu 40% em 2 meses."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">RC</div>
+            <div><div class="testimonial-name">Rafael Costa</div><div class="testimonial-role">Barbearia do Rafa - SP</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card fade-in fade-in-delay-1">
+          <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="testimonial-text">"O programa de fidelidade e genial. Meus clientes voltam mais rapido para acumular pontos. E o relatorio financeiro me ajuda a entender melhor meu negocio."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">AM</div>
+            <div><div class="testimonial-name">Ana Martins</div><div class="testimonial-role">Studio Ana Beleza - RJ</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card fade-in fade-in-delay-2">
+          <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="testimonial-text">"Sou pessimo com tecnologia, mas consegui configurar tudo em 5 minutos. O app e muito facil de usar. Recomendo para qualquer barbeiro."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">JS</div>
+            <div><div class="testimonial-name">Joao Silva</div><div class="testimonial-role">Barbearia Vintage - MG</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <div class="section-header fade-in">
+        <div class="section-tag">FAQ</div>
+        <h2 class="section-title">Perguntas Frequentes</h2>
+      </div>
+      <div class="faq-grid">
+        <div class="faq-item fade-in">
+          <button class="faq-question" onclick="toggleFaq(this)">Preciso de cartao de credito para testar? <i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><p>Nao! O teste de 14 dias e totalmente gratuito e sem compromisso. Nenhuma informacao de pagamento e solicitada durante o periodo de teste.</p></div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" onclick="toggleFaq(this)">Funciona para saloes de beleza e clinicas? <i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><p>Sim! O AgendaPro foi projetado para qualquer estabelecimento que trabalhe com agendamentos: barbearias, saloes, clinicas de estetica, studios de beleza, SPAs e muito mais.</p></div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" onclick="toggleFaq(this)">Como funciona a integracao com WhatsApp? <i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><p>Basta escanear um QR Code com seu WhatsApp, similar ao WhatsApp Web. Em segundos, o sistema comeca a enviar lembretes e confirmacoes automaticamente para seus clientes.</p></div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" onclick="toggleFaq(this)">Posso cancelar a qualquer momento? <i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><p>Sim, sem multa ou taxa. Voce pode cancelar sua assinatura a qualquer momento diretamente pelo painel. Seus dados ficam disponiveis por 30 dias apos o cancelamento.</p></div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" onclick="toggleFaq(this)">Meus clientes precisam baixar algum app? <i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><p>Nao! Seus clientes agendam pelo site (link que voce compartilha). Nao precisam baixar nada. Simples e pratico para eles.</p></div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" onclick="toggleFaq(this)">Posso comprar o sistema em vez de assinar? <i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><p>Sim! Oferecemos a opcao de licenca unica a partir de R$ 2.500 com instalacao e 3 meses de suporte inclusos. Entre em contato para um orcamento personalizado.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="container">
+      <h2 class="fade-in">Pronto para <span class="gradient-text">transformar</span> seu negocio?</h2>
+      <p class="fade-in">Junte-se a mais de 500 profissionais que ja automatizaram sua gestao.</p>
+      <div class="fade-in">
+        <a href="#precos" class="btn-primary" style="font-size:18px;padding:18px 40px">
+          <i class="fas fa-rocket"></i> Comecar Agora - 14 Dias Gratis
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="nav-logo">
+            <div class="nav-logo-icon"><i class="fas fa-calendar-check"></i></div>
+            AgendaPro
+          </a>
+          <p>Sistema completo de gestao para barbearias, saloes de beleza e clinicas de estetica.</p>
+        </div>
+        <div>
+          <div class="footer-title">Produto</div>
+          <ul class="footer-links">
+            <li><a href="#features">Funcionalidades</a></li>
+            <li><a href="#precos">Precos</a></li>
+            <li><a href="#">Atualizacoes</a></li>
+            <li><a href="#">Roadmap</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-title">Suporte</div>
+          <ul class="footer-links">
+            <li><a href="#">Central de Ajuda</a></li>
+            <li><a href="#">Contato</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#">Status</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-title">Legal</div>
+          <ul class="footer-links">
+            <li><a href="#">Termos de Uso</a></li>
+            <li><a href="#">Privacidade</a></li>
+            <li><a href="#">LGPD</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 AgendaPro. Todos os direitos reservados.</p>
+        <div class="footer-social">
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-facebook"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // FAQ Toggle
+    function toggleFaq(btn) {
+      const answer = btn.nextElementSibling;
+      const isOpen = answer.classList.contains('open');
+      document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+      document.querySelectorAll('.faq-question').forEach(q => q.classList.remove('active'));
+      if (!isOpen) { answer.classList.add('open'); btn.classList.add('active'); }
+    }
+
+    // Scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); } });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const navbar = document.getElementById('navbar');
+      navbar.style.borderBottomColor = window.scrollY > 50 ? 'rgba(59,130,246,0.2)' : 'var(--border)';
+    });
+  </script>
+</body>
+</html>

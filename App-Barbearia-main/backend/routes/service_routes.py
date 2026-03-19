@@ -114,3 +114,20 @@ async def delete_service(
     await db.commit()
     
     return {"message": "Service deleted successfully"}
+
+@router.put("/{service_id}/toggle-active", response_model=ServiceResponse)
+async def toggle_service_active(
+    service_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_barber)
+):
+    """Toggle service active status"""
+    result = await db.execute(select(Service).where(Service.id == service_id))
+    service = result.scalar_one_or_none()
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    service.is_active = not service.is_active
+    await db.commit()
+    await db.refresh(service)
+    return service
+

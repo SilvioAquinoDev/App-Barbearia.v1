@@ -1,6 +1,6 @@
 .promotions-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-primary);
 }
 
 .promotions-container {
@@ -12,17 +12,17 @@
 .promotions-header {
   text-align: center;
   margin-bottom: 50px;
-  color: white;
 }
 
 .promotions-header h1 {
   font-size: 3rem;
+  color: var(--text-primary);
   margin-bottom: 12px;
 }
 
 .promotions-header p {
   font-size: 1.2rem;
-  opacity: 0.95;
+  color: var(--text-secondary);
 }
 
 .promotions-grid {
@@ -32,11 +32,19 @@
   margin-bottom: 40px;
 }
 
+@media (max-width: 768px) {
+  .promotions-grid {
+    grid-template-columns: 1fr; /* Uma coluna em mobile */
+    justify-items: center;
+  }
+}
+
 .promo-card {
   position: relative;
   padding: 30px !important;
-  background: white !important;
+  background: var(--bg-card) !important;
   overflow: visible;
+  border: 1px solid var(--border);
 }
 
 .promo-badge {
@@ -54,38 +62,39 @@
 
 .promo-card h2 {
   font-size: 1.8rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 16px;
   margin-top: 10px;
 }
 
 .promo-description {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 24px;
 }
 
 .promo-code {
-  background: #f8f9fa;
+  background: var(--bg-input);
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border: 1px solid var(--border);
 }
 
 .code-label {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
 .code-value {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #007AFF;
+  color: var(--accent);
   font-family: 'Courier New', monospace;
   letter-spacing: 2px;
 }
@@ -100,12 +109,12 @@
 
 .promo-valid {
   font-size: 0.9rem;
-  color: #999;
+  color: var(--text-muted);
   margin: 0;
 }
 
 .btn-use-promo {
-  background: #007AFF;
+  background: var(--accent);
   color: white;
   border: none;
   padding: 10px 24px;
@@ -116,18 +125,19 @@
 }
 
 .btn-use-promo:hover {
-  background: #0056b3;
+  background: var(--accent-dark);
   transform: translateY(-2px);
 }
 
 .promo-info {
-  background: white;
+  background: var(--bg-card) !important;
   padding: 30px !important;
+  border: 1px solid var(--border);
 }
 
 .promo-info h3 {
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
@@ -137,7 +147,7 @@
 
 .promo-info li {
   font-size: 1.1rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 12px;
   line-height: 1.6;
 }

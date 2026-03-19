@@ -1,42 +1,49 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ButtonProps {
   onPress: () => void;
   title: string;
-  variant?: 'primary' | 'secondary' | 'danger' | 'success';
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline';
   loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
 }
 
-export default function Button({ 
-  onPress, 
-  title, 
-  variant = 'primary', 
-  loading = false, 
+export default function Button({
+  onPress,
+  title,
+  variant = 'primary',
+  loading = false,
   disabled = false,
-  style 
+  style
 }: ButtonProps) {
+  const { theme } = useTheme();
+
   const getVariantStyle = () => {
     switch (variant) {
       case 'secondary':
-        return styles.secondary;
+        return { backgroundColor: theme.inputBg };
       case 'danger':
-        return styles.danger;
+        return { backgroundColor: '#FF3B30' };
       case 'success':
-        return styles.success;
+        return { backgroundColor: '#34C759' };
+      case 'outline':
+        return { backgroundColor: 'transparent', borderWidth: 2, borderColor: theme.primary };
       default:
-        return styles.primary;
+        return { backgroundColor: theme.primary };
     }
   };
 
-  const getTextStyle = () => {
+  const getTextColor = () => {
     switch (variant) {
       case 'secondary':
-        return styles.secondaryText;
+        return theme.primary;
+      case 'outline':
+        return theme.primary;
       default:
-        return styles.text;
+        return '#FFFFFF';
     }
   };
 
@@ -53,9 +60,9 @@ export default function Button({
       activeOpacity={0.7}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? '#007AFF' : '#fff'} />
+        <ActivityIndicator color={variant === 'secondary' ? theme.primary : '#fff'} />
       ) : (
-        <Text style={[styles.text, getTextStyle()]}>{title}</Text>
+        <Text style={[styles.text, { color: getTextColor() }]}>{title}</Text>
       )}
     </TouchableOpacity>
   );
@@ -70,27 +77,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 50,
   },
-  primary: {
-    backgroundColor: '#007AFF',
-  },
-  secondary: {
-    backgroundColor: '#F2F2F7',
-  },
-  danger: {
-    backgroundColor: '#FF3B30',
-  },
-  success: {
-    backgroundColor: '#34C759',
-  },
   disabled: {
     opacity: 0.5,
   },
   text: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  secondaryText: {
-    color: '#007AFF',
   },
 });
