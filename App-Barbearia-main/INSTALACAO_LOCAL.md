@@ -1,6 +1,7 @@
 # 🚀 Guia de Instalação Local - Barbershop Manager
 
-## 📋 Pré-requisitos
+## 📋 Pré-requisitos atualizados
+
 
 Antes de começar, certifique-se de ter instalado:
 
