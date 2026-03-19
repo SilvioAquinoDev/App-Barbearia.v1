@@ -6,48 +6,50 @@ from datetime import datetime
 
 from database import get_db
 from auth import get_current_user, get_current_barber
-from models import Appointment, PushToken, User
+from models import Appointment, PushToken, User, Service
 from schemas import AppointmentCreate, AppointmentUpdate, AppointmentResponse
-from notification_service import notification_service
+from notification_service import notify_new_appointment, notify_appointment_confirmed, notify_appointment_cancelled, notify_appointment_completed
+from routes.loyalty_routes import award_loyalty_points
 
 router = APIRouter(prefix="/appointments", tags=["appointments"])
 
 async def send_appointment_notifications(
     appointment_id: int,
-    db: AsyncSession
+    db: AsyncSession,
+    event_type: str = "new_booking",
 ):
-    """Background task to send appointment notifications to barbers"""
+    """Background task to send push + WhatsApp notifications"""
     try:
-        # Get all barber tokens
-        result = await db.execute(
-            select(PushToken, User).join(
-                User, PushToken.user_id == User.user_id
-            ).where(
-                (User.role == "barber") &
-                (PushToken.is_active == True)
-            )
+        appt_result = await db.execute(
+            select(Appointment, Service.name, Service.price).join(
+                Service, Appointment.service_id == Service.id
+            ).where(Appointment.id == appointment_id)
         )
-        tokens = [row[0].token for row in result.all()]
-        
-        if tokens:
-            # Get appointment details
-            appt_result = await db.execute(
-                select(Appointment).where(Appointment.id == appointment_id)
-            )
-            appointment = appt_result.scalar_one_or_none()
-            
-            if appointment:
-                await notification_service.send_appointment_notification(
-                    tokens=tokens,
-                    appointment_data={
-                        "id": appointment.id,
-                        "scheduled_time": appointment.scheduled_time.strftime("%d/%m/%Y %H:%M")
-                    }
-                )
-                
-                # Mark notification as sent
-                appointment.notification_sent = True
-                await db.commit()
+        row = appt_result.first()
+        if not row:
+            return
+        appointment, service_name, service_price = row
+
+        apt_data = {
+            "id": appointment.id,
+            "client_name": appointment.client_name or "Cliente",
+            "client_phone": appointment.client_phone or "",
+            "client_email": appointment.client_email or "",
+            "service_name": service_name,
+            "scheduled_time": appointment.scheduled_time.strftime("%d/%m/%Y %H:%M"),
+        }
+
+        if event_type == "new_booking":
+            await notify_new_appointment(db, apt_data)
+        elif event_type == "confirmed":
+            await notify_appointment_confirmed(db, apt_data)
+        elif event_type == "cancelled":
+            await notify_appointment_cancelled(db, apt_data)
+        elif event_type == "completed":
+            await notify_appointment_completed(db, apt_data)
+
+        appointment.notification_sent = True
+        await db.commit()
     except Exception as e:
         print(f"Error sending notifications: {e}")
 
@@ -81,19 +83,23 @@ async def create_appointment(
     
     return appointment
 
-@router.get("/", response_model=List[AppointmentResponse])
+@router.get("/")
 async def list_appointments(
     status_filter: str = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """List appointments"""
+    """List appointments with service info"""
     
-    # Barbers see all appointments, clients see only their own
-    query = select(Appointment)
+    query = select(Appointment, Service.name, Service.price).join(
+        Service, Appointment.service_id == Service.id
+    )
     
     if current_user.role == "client":
-        query = query.where(Appointment.client_id == current_user.user_id)
+        query = query.where(
+            (Appointment.client_id == current_user.user_id) |
+            (Appointment.client_email == current_user.email)
+        )
     
     if status_filter:
         query = query.where(Appointment.status == status_filter)
@@ -101,9 +107,27 @@ async def list_appointments(
     query = query.order_by(Appointment.scheduled_time.desc())
     
     result = await db.execute(query)
-    appointments = result.scalars().all()
+    rows = result.all()
     
-    return appointments
+    return [
+        {
+            "id": apt.id,
+            "client_id": apt.client_id,
+            "service_id": apt.service_id,
+            "scheduled_time": apt.scheduled_time.isoformat(),
+            "status": apt.status,
+            "client_name": apt.client_name,
+            "client_phone": apt.client_phone,
+            "client_email": apt.client_email,
+            "notes": apt.notes,
+            "notification_sent": apt.notification_sent,
+            "created_at": apt.created_at.isoformat(),
+            "updated_at": apt.updated_at.isoformat(),
+            "service_name": service_name,
+            "service_price": service_price,
+        }
+        for apt, service_name, service_price in rows
+    ]
 
 @router.get("/{appointment_id}", response_model=AppointmentResponse)
 async def get_appointment(
@@ -166,71 +190,106 @@ async def update_appointment(
 @router.post("/{appointment_id}/confirm")
 async def confirm_appointment(
     appointment_id: int,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_barber)
 ):
     """Confirm appointment"""
     
     result = await db.execute(
-        select(Appointment).where(Appointment.id == appointment_id)
+        select(Appointment, Service.name).join(
+            Service, Appointment.service_id == Service.id
+        ).where(Appointment.id == appointment_id)
     )
-    appointment = result.scalar_one_or_none()
+    row = result.first()
     
-    if not appointment:
+    if not row:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Appointment not found"
         )
     
+    appointment, service_name = row
     appointment.status = "confirmed"
     await db.commit()
+    
+    # Send Push + WhatsApp notification in background
+    background_tasks.add_task(
+        send_appointment_notifications, appointment.id, db, "confirmed"
+    )
     
     return {"message": "Appointment confirmed successfully"}
 
 @router.post("/{appointment_id}/cancel")
 async def cancel_appointment(
     appointment_id: int,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_barber)
 ):
     """Cancel appointment"""
     
     result = await db.execute(
-        select(Appointment).where(Appointment.id == appointment_id)
+        select(Appointment, Service.name).join(
+            Service, Appointment.service_id == Service.id
+        ).where(Appointment.id == appointment_id)
     )
-    appointment = result.scalar_one_or_none()
+    row = result.first()
     
-    if not appointment:
+    if not row:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Appointment not found"
         )
     
+    appointment, service_name = row
     appointment.status = "cancelled"
     await db.commit()
+    
+    background_tasks.add_task(
+        send_appointment_notifications, appointment.id, db, "cancelled"
+    )
     
     return {"message": "Appointment cancelled successfully"}
 
 @router.post("/{appointment_id}/complete")
 async def complete_appointment(
     appointment_id: int,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_barber)
 ):
     """Mark appointment as completed"""
     
     result = await db.execute(
-        select(Appointment).where(Appointment.id == appointment_id)
+        select(Appointment, Service.name, Service.price).join(
+            Service, Appointment.service_id == Service.id
+        ).where(Appointment.id == appointment_id)
     )
-    appointment = result.scalar_one_or_none()
+    row = result.first()
     
-    if not appointment:
+    if not row:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Appointment not found"
         )
     
+    appointment, service_name, service_price = row
     appointment.status = "completed"
     await db.commit()
+    
+    # Award loyalty points if client has phone number
+    if appointment.client_phone:
+        try:
+            await award_loyalty_points(
+                db, appointment.id, service_price,
+                appointment.client_phone, appointment.client_name
+            )
+        except Exception as e:
+            print(f"[Loyalty] Erro ao dar pontos: {e}")
+    
+    background_tasks.add_task(
+        send_appointment_notifications, appointment.id, db, "completed"
+    )
     
     return {"message": "Appointment completed successfully"}

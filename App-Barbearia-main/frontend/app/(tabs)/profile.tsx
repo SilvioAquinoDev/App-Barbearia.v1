@@ -7,8 +7,11 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  Platform,
+  Switch,
 } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import Card from '../../src/components/Card';
 import Button from '../../src/components/Button';
@@ -16,28 +19,33 @@ import api from '../../src/services/api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, checkAuth } = useAuth();
+  const { theme, isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleLogout = async () => {
-    Alert.alert(
-      'Sair',
-      'Tem certeza que deseja sair?',
-      [
+  const handleLogout = () => {
+    const doLogout = async () => {
+      setLoading(true);
+      try {
+        await logout();
+      } catch (e) {
+        console.error('Logout error:', e);
+      }
+      setLoading(false);
+      router.replace('/login');
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Tem certeza que deseja sair?')) {
+        doLogout();
+      }
+    } else {
+      Alert.alert('Sair', 'Tem certeza que deseja sair?', [
         { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            await logout();
-            router.replace('/login');
-            setLoading(false);
-          },
-        },
-      ]
-    );
+        { text: 'Sair', style: 'destructive', onPress: doLogout },
+      ]);
+    }
   };
 
   const handlePromoteToBarber = async () => {
@@ -56,9 +64,8 @@ export default function Profile() {
           onPress: async () => {
             try {
               await api.post('/auth/promote-to-barber');
-              Alert.alert('Sucesso', 'Você agora é um barbeiro!');
-              // Reload user data
-              router.replace('/');
+              await checkAuth(); // Refresh user data in context
+              Alert.alert('Sucesso', 'Você agora é um barbeiro! Todas as funcionalidades de gerenciamento foram desbloqueadas.');
             } catch (error) {
               Alert.alert('Erro', 'Falha ao promover usuário');
             }
@@ -69,20 +76,20 @@ export default function Profile() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Card style={styles.profileCard}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={styles.content}>
+      <Card style={[styles.profileCard, { backgroundColor: theme.card }]}>
         {user?.picture ? (
           <Image source={{ uri: user.picture }} style={styles.avatar} />
         ) : (
-          <View style={styles.avatarPlaceholder}>
-            <Ionicons name="person" size={48} color="#999" />
+          <View style={[styles.avatarPlaceholder, { backgroundColor: theme.border }]}>
+            <Ionicons name="person" size={48} color={theme.textMuted} />
           </View>
         )}
         
-        <Text style={styles.name}>{user?.name}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+        <Text style={[styles.name, { color: theme.text }]}>{user?.name}</Text>
+        <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
         
-        <View style={styles.roleBadge}>
+        <View style={[styles.roleBadge, { backgroundColor: theme.primary }]}>
           <Ionicons 
             name={user?.role === 'barber' ? 'cut' : 'person'} 
             size={16} 
@@ -95,42 +102,79 @@ export default function Profile() {
       </Card>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Informações</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Informações</Text>
         
-        <Card>
-          <TouchableOpacity style={styles.menuItem}>
+        <Card style={{ backgroundColor: theme.card }}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Meu Perfil', `Nome: ${user?.name}\nEmail: ${user?.email}\nRole: ${user?.role === 'barber' ? 'Barbeiro' : 'Cliente'}`)}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="person-outline" size={24} color="#007AFF" />
-              <Text style={styles.menuItemText}>Meu Perfil</Text>
+              <Ionicons name="person-outline" size={24} color={theme.primary} />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>Meu Perfil</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Notificações', 'As notificações push estão ativas para novos agendamentos.')}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="notifications-outline" size={24} color="#007AFF" />
-              <Text style={styles.menuItemText}>Notificações</Text>
+              <Ionicons name="notifications-outline" size={24} color={theme.primary} />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>Notificações</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Ajuda', 'Barbershop Manager v1.0.0')}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="help-circle-outline" size={24} color="#007AFF" />
-              <Text style={styles.menuItemText}>Ajuda</Text>
+              <Ionicons name="help-circle-outline" size={24} color={theme.primary} />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>Ajuda</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
         </Card>
       </View>
 
+      {user?.role === 'barber' && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Gerenciamento</Text>
+          <Card style={{ backgroundColor: theme.card }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/promotions-manage')}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="pricetag-outline" size={24} color="#FF6B00" />
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Promoções</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        </View>
+      )}
+
+      {user?.role === 'barber' && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Integrações</Text>
+          <Card style={{ backgroundColor: theme.card }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/whatsapp-settings')}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
+                <Text style={[styles.menuItemText, { color: theme.text }]}>WhatsApp Business</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/server-config')}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="server-outline" size={24} color={theme.primary} />
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Configurar Servidor</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        </View>
+      )}
+
       {user?.role !== 'barber' && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ações</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Acoes</Text>
           <Button
             title="Tornar-se Barbeiro"
             variant="success"
@@ -139,13 +183,32 @@ export default function Profile() {
         </View>
       )}
 
+      <View style={[styles.section]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Aparência</Text>
+        <Card style={{ backgroundColor: theme.card }}>
+          <View style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name={isDark ? 'moon' : 'sunny'} size={24} color={isDark ? '#FFD700' : '#FF9500'} />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>Modo Escuro</Text>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: '#DDD', true: '#4DA6FF' }}
+              thumbColor={isDark ? '#FFFFFF' : '#F4F4F4'}
+              data-testid="dark-mode-toggle"
+            />
+          </View>
+        </Card>
+      </View>
+
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Sobre</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Sobre</Text>
         <Card>
-          <Text style={styles.aboutText}>
+          <Text style={[styles.aboutText, { color: theme.text }]}>
             Barbershop Manager v1.0.0
           </Text>
-          <Text style={styles.aboutSubtext}>
+          <Text style={[styles.aboutSubtext, { color: theme.textSecondary }]}>
             Sistema completo de gerenciamento para barbearias
           </Text>
         </Card>

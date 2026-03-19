@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, List
 
 # User Schemas
@@ -16,6 +16,7 @@ class UserResponse(BaseModel):
     picture: Optional[str]
     role: str
     phone: Optional[str]
+    birth_date: Optional[date] = None
     created_at: datetime
     
     class Config:
@@ -54,12 +55,14 @@ class ProductCreate(BaseModel):
     description: Optional[str] = None
     price: float = Field(..., gt=0)
     stock: int = Field(default=0, ge=0)
+    image_url: Optional[str] = None
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
     stock: Optional[int] = None
+    image_url: Optional[str] = None
     is_active: Optional[bool] = None
 
 class ProductResponse(BaseModel):
@@ -68,6 +71,7 @@ class ProductResponse(BaseModel):
     description: Optional[str]
     price: float
     stock: int
+    image_url: Optional[str]
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -88,11 +92,13 @@ class AppointmentUpdate(BaseModel):
 
 class AppointmentResponse(BaseModel):
     id: int
-    client_id: str
+    client_id: Optional[str] = None
     service_id: int
     scheduled_time: datetime
     status: str
-    notes: Optional[str]
+    client_name: Optional[str] = None
+    client_phone: Optional[str] = None
+    notes: Optional[str] = None
     notification_sent: bool
     created_at: datetime
     updated_at: datetime

@@ -1,281 +1,312 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Barbershop Manager
-Tests all backend endpoints according to the review request.
+Backend Test Suite for Barbershop Manager API
+Testing new public booking and barber schedule management endpoints.
 """
 
-import requests
+import asyncio
+import uuid
 import json
-from typing import Dict, Any
+import sys
+from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Dict, Any, Optional
 
-class BarbershopAPITester:
-    def __init__(self, base_url: str = "https://barber-dashboard-14.preview.emergentagent.com"):
-        self.base_url = base_url
-        self.session = requests.Session()
-        self.test_results = {
-            "health_check": None,
-            "services_endpoints": {},
-            "products_endpoints": {},
-            "appointments_endpoints": {},
-            "cash_register_endpoints": {},
-            "errors": []
-        }
-    
-    def test_health_check(self):
-        """Test GET /api/health - Should return status healthy"""
-        try:
-            print("🔍 Testing Health Check...")
-            response = self.session.get(f"{self.base_url}/api/health", timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                expected_keys = ["status", "service", "version"]
-                
-                if all(key in data for key in expected_keys) and data.get("status") == "healthy":
-                    self.test_results["health_check"] = {"status": "PASS", "response": data}
-                    print("✅ Health check PASSED")
-                    return True
-                else:
-                    self.test_results["health_check"] = {"status": "FAIL", "reason": "Invalid response format", "response": data}
-                    print(f"❌ Health check FAILED - Invalid response format: {data}")
-                    return False
-            else:
-                self.test_results["health_check"] = {"status": "FAIL", "reason": f"HTTP {response.status_code}", "response": response.text}
-                print(f"❌ Health check FAILED - HTTP {response.status_code}: {response.text}")
-                return False
-                
-        except requests.exceptions.RequestException as e:
-            self.test_results["health_check"] = {"status": "ERROR", "reason": str(e)}
-            print(f"❌ Health check ERROR: {e}")
-            return False
-    
-    def test_services_endpoints(self):
-        """Test Services endpoints (No auth required for GET)"""
-        print("\n🔍 Testing Services Endpoints...")
+import requests
+
+# Add backend directory to path to import modules
+backend_dir = Path(__file__).parent / "backend"
+sys.path.insert(0, str(backend_dir))
+
+from database import async_session_factory, init_db
+from models import User, UserSession, Service, BarberAvailability, Appointment
+from sqlalchemy import delete
+
+# Configuration
+BACKEND_URL = "https://barber-mgmt-5.preview.emergentagent.com/api"
+TEST_BARBER_ID = "test_schedule_001"
+TEST_BARBER_EMAIL = "schedule@test.com"
+TEST_BARBER_NAME = "Barber Test"
+
+class BarberBookingTester:
+    def __init__(self):
+        self.session_token = None
+        self.auth_headers = {}
+        self.test_service_id = None
+        self.created_schedule_ids = []
+        self.created_appointment_id = None
+
+    async def setup_test_data(self):
+        """Step 1: Setup - Create test barber + session using Python"""
+        print("📋 Step 1: Setting up test barber and session...")
         
-        # Test GET /api/services
         try:
-            response = self.session.get(f"{self.base_url}/api/services", timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if isinstance(data, list):
-                    self.test_results["services_endpoints"]["get_services"] = {
-                        "status": "PASS", 
-                        "response": data,
-                        "note": f"Returned {len(data)} services"
-                    }
-                    print(f"✅ GET /api/services PASSED - Returned {len(data)} services")
-                else:
-                    self.test_results["services_endpoints"]["get_services"] = {
-                        "status": "FAIL", 
-                        "reason": "Response is not a list",
-                        "response": data
-                    }
-                    print(f"❌ GET /api/services FAILED - Expected list, got: {type(data)}")
-            else:
-                self.test_results["services_endpoints"]["get_services"] = {
-                    "status": "FAIL", 
-                    "reason": f"HTTP {response.status_code}",
-                    "response": response.text
-                }
-                print(f"❌ GET /api/services FAILED - HTTP {response.status_code}: {response.text}")
+            await init_db()
+            async with async_session_factory() as db:
+                # Create test barber user
+                user = User(
+                    user_id=TEST_BARBER_ID,
+                    email=TEST_BARBER_EMAIL,
+                    name=TEST_BARBER_NAME,
+                    role='barber'
+                )
+                db.add(user)
                 
-        except requests.exceptions.RequestException as e:
-            self.test_results["services_endpoints"]["get_services"] = {"status": "ERROR", "reason": str(e)}
-            print(f"❌ GET /api/services ERROR: {e}")
-    
-    def test_products_endpoints(self):
-        """Test Products endpoints (No auth required for GET)"""
-        print("\n🔍 Testing Products Endpoints...")
-        
-        # Test GET /api/products
-        try:
-            response = self.session.get(f"{self.base_url}/api/products", timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if isinstance(data, list):
-                    self.test_results["products_endpoints"]["get_products"] = {
-                        "status": "PASS", 
-                        "response": data,
-                        "note": f"Returned {len(data)} products"
-                    }
-                    print(f"✅ GET /api/products PASSED - Returned {len(data)} products")
-                else:
-                    self.test_results["products_endpoints"]["get_products"] = {
-                        "status": "FAIL", 
-                        "reason": "Response is not a list",
-                        "response": data
-                    }
-                    print(f"❌ GET /api/products FAILED - Expected list, got: {type(data)}")
-            else:
-                self.test_results["products_endpoints"]["get_products"] = {
-                    "status": "FAIL", 
-                    "reason": f"HTTP {response.status_code}",
-                    "response": response.text
-                }
-                print(f"❌ GET /api/products FAILED - HTTP {response.status_code}: {response.text}")
+                # Create session token
+                token = f'session_{uuid.uuid4().hex}'
+                session = UserSession(
+                    user_id=TEST_BARBER_ID,
+                    session_token=token,
+                    expires_at=datetime.utcnow() + timedelta(days=7)
+                )
+                db.add(session)
                 
-        except requests.exceptions.RequestException as e:
-            self.test_results["products_endpoints"]["get_products"] = {"status": "ERROR", "reason": str(e)}
-            print(f"❌ GET /api/products ERROR: {e}")
-    
-    def test_appointments_endpoints(self):
-        """Test Appointments endpoints (Requires auth)"""
-        print("\n🔍 Testing Appointments Endpoints...")
-        
-        # Test GET /api/appointments without auth - Should return 401
-        try:
-            response = self.session.get(f"{self.base_url}/api/appointments", timeout=10)
-            
-            if response.status_code == 401:
-                self.test_results["appointments_endpoints"]["get_appointments_no_auth"] = {
-                    "status": "PASS", 
-                    "note": "Correctly returned 401 without authentication"
-                }
-                print("✅ GET /api/appointments without auth PASSED - Correctly returned 401")
-            else:
-                self.test_results["appointments_endpoints"]["get_appointments_no_auth"] = {
-                    "status": "FAIL", 
-                    "reason": f"Expected 401, got {response.status_code}",
-                    "response": response.text
-                }
-                print(f"❌ GET /api/appointments without auth FAILED - Expected 401, got {response.status_code}")
+                await db.commit()
                 
-        except requests.exceptions.RequestException as e:
-            self.test_results["appointments_endpoints"]["get_appointments_no_auth"] = {"status": "ERROR", "reason": str(e)}
-            print(f"❌ GET /api/appointments ERROR: {e}")
-    
-    def test_cash_register_endpoints(self):
-        """Test Cash Register endpoints (Requires auth)"""
-        print("\n🔍 Testing Cash Register Endpoints...")
-        
-        # Test GET /api/cash-register/current without auth - Should return 401
-        try:
-            response = self.session.get(f"{self.base_url}/api/cash-register/current", timeout=10)
-            
-            if response.status_code == 401:
-                self.test_results["cash_register_endpoints"]["get_current_no_auth"] = {
-                    "status": "PASS", 
-                    "note": "Correctly returned 401 without authentication"
-                }
-                print("✅ GET /api/cash-register/current without auth PASSED - Correctly returned 401")
-            else:
-                self.test_results["cash_register_endpoints"]["get_current_no_auth"] = {
-                    "status": "FAIL", 
-                    "reason": f"Expected 401, got {response.status_code}",
-                    "response": response.text
-                }
-                print(f"❌ GET /api/cash-register/current without auth FAILED - Expected 401, got {response.status_code}")
+                self.session_token = token
+                self.auth_headers = {"Authorization": f"Bearer {token}"}
+                print(f"✅ Test barber created with token: {token[:16]}...")
                 
-        except requests.exceptions.RequestException as e:
-            self.test_results["cash_register_endpoints"]["get_current_no_auth"] = {"status": "ERROR", "reason": str(e)}
-            print(f"❌ GET /api/cash-register/current ERROR: {e}")
-    
-    def test_additional_endpoints(self):
-        """Test additional endpoints for completeness"""
-        print("\n🔍 Testing Additional Endpoints...")
-        
-        # Test root endpoint
-        try:
-            response = self.session.get(f"{self.base_url}/api", timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                print(f"✅ GET /api PASSED - Response: {data}")
-            else:
-                print(f"❌ GET /api FAILED - HTTP {response.status_code}")
         except Exception as e:
-            print(f"❌ GET /api ERROR: {e}")
-    
-    def run_all_tests(self):
-        """Run all tests and provide summary"""
-        print("🚀 Starting Barbershop Manager API Backend Tests...")
-        print(f"Base URL: {self.base_url}")
-        print("=" * 60)
-        
-        # Run all test methods
-        self.test_health_check()
-        self.test_services_endpoints()
-        self.test_products_endpoints()
-        self.test_appointments_endpoints() 
-        self.test_cash_register_endpoints()
-        self.test_additional_endpoints()
-        
-        # Print summary
-        self.print_summary()
-        
-        return self.test_results
-    
-    def print_summary(self):
-        """Print test results summary"""
-        print("\n" + "=" * 60)
-        print("📊 TEST RESULTS SUMMARY")
-        print("=" * 60)
-        
-        total_tests = 0
-        passed_tests = 0
-        failed_tests = 0
-        error_tests = 0
-        
-        # Count results
-        for category, results in self.test_results.items():
-            if category == "errors":
-                continue
-            
-            if isinstance(results, dict):
-                if "status" in results:  # Single test
-                    total_tests += 1
-                    if results["status"] == "PASS":
-                        passed_tests += 1
-                    elif results["status"] == "FAIL":
-                        failed_tests += 1
-                    elif results["status"] == "ERROR":
-                        error_tests += 1
-                else:  # Multiple tests in category
-                    for test_name, result in results.items():
-                        if isinstance(result, dict) and "status" in result:
-                            total_tests += 1
-                            if result["status"] == "PASS":
-                                passed_tests += 1
-                            elif result["status"] == "FAIL":
-                                failed_tests += 1
-                            elif result["status"] == "ERROR":
-                                error_tests += 1
-        
-        print(f"Total Tests: {total_tests}")
-        print(f"✅ Passed: {passed_tests}")
-        print(f"❌ Failed: {failed_tests}")
-        print(f"🔥 Errors: {error_tests}")
-        print()
-        
-        # Print detailed results for failed/error tests
-        if failed_tests > 0 or error_tests > 0:
-            print("🔍 DETAILED FAILURE/ERROR REPORT:")
-            print("-" * 40)
-            
-            for category, results in self.test_results.items():
-                if category == "errors":
-                    continue
-                
-                if isinstance(results, dict):
-                    if "status" in results and results["status"] in ["FAIL", "ERROR"]:
-                        print(f"{category}: {results['status']} - {results.get('reason', 'No reason provided')}")
-                    else:
-                        for test_name, result in results.items():
-                            if isinstance(result, dict) and result.get("status") in ["FAIL", "ERROR"]:
-                                print(f"{category}.{test_name}: {result['status']} - {result.get('reason', 'No reason provided')}")
+            print(f"❌ Failed to setup test data: {e}")
+            raise
 
-def main():
+    def test_schedule_management(self):
+        """Step 2: Test Schedule Management (requires barber auth)"""
+        print("\n📋 Step 2: Testing Schedule Management...")
+        
+        # Test GET /api/schedule/ - should return empty list
+        print("Testing GET /api/schedule/ (empty)")
+        response = requests.get(f"{BACKEND_URL}/schedule/", headers=self.auth_headers)
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        schedules = response.json()
+        assert isinstance(schedules, list), "Expected list response"
+        assert len(schedules) == 0, f"Expected empty list, got {len(schedules)} items"
+        print("✅ Empty schedule list returned correctly")
+        
+        # Test POST /api/schedule/bulk - create schedule for Mon-Fri
+        print("Testing POST /api/schedule/bulk (Mon-Fri)")
+        bulk_data = {
+            "days": [0, 1, 2, 3, 4],  # Monday to Friday
+            "start_time": "09:00",
+            "end_time": "18:00",
+            "slot_duration_minutes": 30,
+            "recurrence_type": "weekly"
+        }
+        response = requests.post(f"{BACKEND_URL}/schedule/bulk", 
+                               json=bulk_data, 
+                               headers=self.auth_headers)
+        assert response.status_code == 201, f"Expected 201, got {response.status_code}: {response.text}"
+        created_schedules = response.json()
+        assert len(created_schedules) == 5, f"Expected 5 schedules, got {len(created_schedules)}"
+        
+        # Store IDs for cleanup
+        self.created_schedule_ids = [schedule['id'] for schedule in created_schedules]
+        print(f"✅ Created {len(created_schedules)} schedules for Mon-Fri")
+        
+        # Test GET /api/schedule/ - should now return 5 entries
+        print("Testing GET /api/schedule/ (populated)")
+        response = requests.get(f"{BACKEND_URL}/schedule/", headers=self.auth_headers)
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        schedules = response.json()
+        assert len(schedules) == 5, f"Expected 5 schedules, got {len(schedules)}"
+        print("✅ Schedule list now contains 5 entries")
+        
+        # Test DELETE /api/schedule/{id} - delete one entry
+        if self.created_schedule_ids:
+            schedule_id_to_delete = self.created_schedule_ids[0]
+            print(f"Testing DELETE /api/schedule/{schedule_id_to_delete}")
+            response = requests.delete(f"{BACKEND_URL}/schedule/{schedule_id_to_delete}", 
+                                     headers=self.auth_headers)
+            assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+            print("✅ Individual schedule deleted successfully")
+            
+            # Remove from our tracking list
+            self.created_schedule_ids.remove(schedule_id_to_delete)
+
+    def test_public_booking_flow(self):
+        """Step 3: Test Public Booking (no auth)"""
+        print("\n📋 Step 3: Testing Public Booking Flow...")
+        
+        # Test GET /api/public/services - should return services list
+        print("Testing GET /api/public/services")
+        response = requests.get(f"{BACKEND_URL}/public/services")
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        services = response.json()
+        assert isinstance(services, list), "Expected services list"
+        
+        # Find a service to use for booking
+        if services:
+            self.test_service_id = services[0]['id']
+            print(f"✅ Found {len(services)} services, using service ID: {self.test_service_id}")
+        else:
+            print("⚠️  No services found, creating a test service...")
+            # Create a test service using authenticated request
+            service_data = {
+                "name": "Test Haircut",
+                "description": "Test service for booking",
+                "price": 25.0,
+                "duration_minutes": 30
+            }
+            response = requests.post(f"{BACKEND_URL}/services/", 
+                                   json=service_data, 
+                                   headers=self.auth_headers)
+            assert response.status_code == 201, f"Failed to create test service: {response.status_code}"
+            self.test_service_id = response.json()['id']
+            print(f"✅ Created test service with ID: {self.test_service_id}")
+        
+        # Create schedule again for testing available slots (if we deleted all)
+        if len(self.created_schedule_ids) == 0:
+            print("Recreating schedule for availability testing...")
+            bulk_data = {
+                "days": [0],  # Just Monday
+                "start_time": "09:00",
+                "end_time": "18:00",
+                "slot_duration_minutes": 30,
+                "recurrence_type": "weekly"
+            }
+            response = requests.post(f"{BACKEND_URL}/schedule/bulk", 
+                                   json=bulk_data, 
+                                   headers=self.auth_headers)
+            assert response.status_code == 201, "Failed to recreate schedule"
+            created_schedules = response.json()
+            self.created_schedule_ids.extend([schedule['id'] for schedule in created_schedules])
+        
+        # Test GET /api/public/available-slots?date_str=2026-03-09
+        print("Testing GET /api/public/available-slots for 2026-03-09 (Monday)")
+        response = requests.get(f"{BACKEND_URL}/public/available-slots?date_str=2026-03-09")
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        slots_data = response.json()
+        assert 'slots' in slots_data, "Response should contain 'slots' key"
+        available_slots = slots_data['slots']
+        print(f"✅ Found {len(available_slots)} available slots for March 9, 2026")
+        
+        if not available_slots:
+            print("❌ No available slots found - cannot test booking")
+            return
+        
+        # Test POST /api/public/book - book an appointment
+        print("Testing POST /api/public/book")
+        selected_slot = available_slots[0]['datetime_iso']
+        booking_data = {
+            "client_name": "Carlos",
+            "client_phone": "11999887766",
+            "service_id": self.test_service_id,
+            "scheduled_time": selected_slot,
+            "notes": "Test booking"
+        }
+        response = requests.post(f"{BACKEND_URL}/public/book", json=booking_data)
+        assert response.status_code == 201, f"Expected 201, got {response.status_code}: {response.text}"
+        booking_confirmation = response.json()
+        self.created_appointment_id = booking_confirmation['id']
+        print(f"✅ Appointment booked successfully: ID {self.created_appointment_id}")
+        
+        # Test GET /api/public/available-slots again - verify the booked slot is no longer available
+        print("Testing GET /api/public/available-slots (after booking)")
+        response = requests.get(f"{BACKEND_URL}/public/available-slots?date_str=2026-03-09")
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        slots_data_after = response.json()
+        available_slots_after = slots_data_after['slots']
+        
+        # The booked slot should no longer be available
+        booked_slot_times = [slot['datetime_iso'] for slot in available_slots_after]
+        assert selected_slot not in booked_slot_times, "Booked slot should not be available anymore"
+        print(f"✅ Booked slot removed from available slots ({len(available_slots_after)} remaining)")
+        
+        # Test POST /api/public/book with same time - should get 409 conflict
+        print("Testing POST /api/public/book (duplicate time - should fail)")
+        response = requests.post(f"{BACKEND_URL}/public/book", json=booking_data)
+        assert response.status_code == 409, f"Expected 409 conflict, got {response.status_code}"
+        print("✅ Duplicate booking correctly rejected with 409 conflict")
+
+    def test_schedule_delete_all(self):
+        """Test DELETE /api/schedule/ - clear all remaining"""
+        print("\nTesting DELETE /api/schedule/ (clear all)")
+        response = requests.delete(f"{BACKEND_URL}/schedule/", headers=self.auth_headers)
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        print("✅ All schedules cleared successfully")
+        
+        # Clear our tracking list
+        self.created_schedule_ids = []
+
+    async def cleanup_test_data(self):
+        """Step 4: Cleanup - Delete test data"""
+        print("\n📋 Step 4: Cleaning up test data...")
+        
+        try:
+            await init_db()
+            async with async_session_factory() as db:
+                # Delete test appointment
+                if self.created_appointment_id:
+                    await db.execute(
+                        delete(Appointment).where(Appointment.client_name == 'Carlos')
+                    )
+                
+                # Delete remaining schedules
+                await db.execute(
+                    delete(BarberAvailability).where(BarberAvailability.barber_id == TEST_BARBER_ID)
+                )
+                
+                # Delete test session
+                await db.execute(
+                    delete(UserSession).where(UserSession.user_id == TEST_BARBER_ID)
+                )
+                
+                # Delete test user
+                await db.execute(
+                    delete(User).where(User.user_id == TEST_BARBER_ID)
+                )
+                
+                await db.commit()
+                print("✅ Cleanup completed successfully")
+                
+        except Exception as e:
+            print(f"⚠️  Cleanup error (non-critical): {e}")
+
+    async def run_all_tests(self):
+        """Run the complete test suite"""
+        print("🚀 Starting Barber Booking API Test Suite")
+        print(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Setup
+            await self.setup_test_data()
+            
+            # Step 2: Schedule Management
+            self.test_schedule_management()
+            
+            # Step 3: Public Booking
+            self.test_public_booking_flow()
+            
+            # Additional schedule cleanup test
+            self.test_schedule_delete_all()
+            
+            print("\n🎉 All tests completed successfully!")
+            return True
+            
+        except AssertionError as e:
+            print(f"\n❌ Test failed: {e}")
+            return False
+        except Exception as e:
+            print(f"\n💥 Unexpected error: {e}")
+            return False
+        finally:
+            # Step 4: Cleanup
+            await self.cleanup_test_data()
+
+
+async def main():
     """Main test runner"""
-    tester = BarbershopAPITester()
-    results = tester.run_all_tests()
+    tester = BarberBookingTester()
+    success = await tester.run_all_tests()
     
-    # Save results to file for analysis
-    with open("/app/test_results_backend.json", "w") as f:
-        json.dump(results, f, indent=2, default=str)
-    
-    print(f"\n💾 Detailed results saved to: /app/test_results_backend.json")
+    if success:
+        print("\n✅ ALL TESTS PASSED")
+        sys.exit(0)
+    else:
+        print("\n❌ SOME TESTS FAILED")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

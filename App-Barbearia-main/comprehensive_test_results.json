@@ -1,0 +1,14 @@
+{
+  "setup": {
+    "status": "ERROR",
+    "error": "[Errno -5] No address associated with hostname"
+  },
+  "health_check": {},
+  "auth_endpoints": {},
+  "services_endpoints": {},
+  "products_endpoints": {},
+  "appointments_endpoints": {},
+  "cash_register_endpoints": {},
+  "cleanup": {},
+  "summary": {}
+}

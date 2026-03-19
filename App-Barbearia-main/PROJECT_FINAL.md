@@ -434,7 +434,7 @@ curl http://localhost:8001/api/health
 
 ### 2. App Mobile (Já Rodando)
 ```bash
-# Preview web: https://barber-dashboard-14.preview.emergentagent.com
+# Preview web: https://barber-mgmt-5.preview.emergentagent.com
 # Expo está servindo na porta 3000
 
 # Para testar no celular:

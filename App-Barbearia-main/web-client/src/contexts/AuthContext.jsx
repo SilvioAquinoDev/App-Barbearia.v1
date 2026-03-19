@@ -15,35 +15,29 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('client_token');
     if (token) {
       try {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const response = await api.get('/auth/me');
         setUser(response.data);
       } catch (error) {
         localStorage.removeItem('client_token');
+        delete api.defaults.headers.common['Authorization'];
       }
     }
     setLoading(false);
   };
 
-  const login = async (email, password) => {
-    // For demo, we'll use Google OAuth
-    // In production, this would handle the OAuth flow
+  const handleOAuthCallback = async (sessionId) => {
     try {
-      const response = await api.post('/auth/session', { email, password });
-      localStorage.setItem('client_token', response.data.session_token);
-      setUser(response.data.user);
-      return response.data.user;
+      const response = await api.post('/auth/session', null, {
+        params: { session_id: sessionId }
+      });
+      const { user: userData, session_token } = response.data;
+      localStorage.setItem('client_token', session_token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${session_token}`;
+      setUser(userData);
+      return userData;
     } catch (error) {
-      throw error;
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await api.post('/auth/register', userData);
-      localStorage.setItem('client_token', response.data.session_token);
-      setUser(response.data.user);
-      return response.data.user;
-    } catch (error) {
+      console.error('OAuth callback error:', error);
       throw error;
     }
   };
@@ -55,12 +49,13 @@ export function AuthProvider({ children }) {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('client_token');
+      delete api.defaults.headers.common['Authorization'];
       setUser(null);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, setUser, loading, logout, checkAuth, handleOAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );

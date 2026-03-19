@@ -1,5 +1,5 @@
 import httpx
-from fastapi import Depends, HTTPException, status, Cookie
+from fastapi import Depends, HTTPException, status, Cookie, Header, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timedelta, timezone
@@ -59,7 +59,7 @@ async def create_user_session(
     
     # Create session token
     session_token = f"session_{uuid.uuid4().hex}"
-    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    expires_at = datetime.utcnow() + timedelta(days=7)
     
     user_session = UserSession(
         user_id=user.user_id,
@@ -74,19 +74,34 @@ async def create_user_session(
     return user, session_token
 
 async def get_current_user(
+    request: Request,
     session_token: Optional[str] = Cookie(None),
-    authorization: Optional[str] = None,
+    authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """Get current user from session token"""
     
-    # Try to get token from cookie first, then Authorization header
-    token = session_token
-    if not token and authorization:
-        if authorization.startswith("Bearer "):
-            token = authorization[7:]
+    # Try to get token from: 1) Authorization header, 2) Cookie, 3) Query param
+    token = None
+    
+    # Method 1: Authorization header (preferred for mobile)
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization[7:]
+        print(f"🔑 [AUTH] Token encontrado no header Authorization")
+    
+    # Method 2: Cookie (for web browser)
+    if not token and session_token:
+        token = session_token
+        print(f"🔑 [AUTH] Token encontrado no cookie")
+    
+    # Method 3: Query parameter fallback
+    if not token:
+        token = request.query_params.get("session_token")
+        if token:
+            print(f"🔑 [AUTH] Token encontrado nos query params")
     
     if not token:
+        print(f"❌ [AUTH] Nenhum token encontrado. Headers: {dict(request.headers)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated"

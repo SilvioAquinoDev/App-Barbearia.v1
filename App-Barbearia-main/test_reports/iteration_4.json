@@ -1,0 +1,65 @@
+{
+  "summary": "Iteration 4: Backend testing completed for Promotions CRUD and Service Photos CRUD. All 37 tests passed. Full CRUD operations tested: create, read, update, delete, toggle is_active for promotions. Photo upload/delete flow working correctly. Auth validation working for all protected endpoints.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_promotions_photos.py",
+    "/app/test_reports/pytest/pytest_results_iter4.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_promotions_photos.py"
+  ],
+  "success_rate": {
+    "backend": "100% (37/37 passed)",
+    "frontend": "N/A (backend only testing)"
+  },
+  "test_credentials": {
+    "test_user": "test_barber@testing.com",
+    "role": "barber",
+    "note": "Fresh session token created for each test run"
+  },
+  "seed_data_creation": "Test promotions and photos created and cleaned up during tests (prefixed with TEST_PROMO_)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All new features from iteration 4 are working correctly. Tested: Promotions CRUD (GET /api/promotions/ public, GET /api/promotions/all auth, POST /api/promotions/ auth, PUT /api/promotions/{id} auth, DELETE /api/promotions/{id} auth). Service Photos CRUD (GET /api/service-photos/{service_id} public, POST /api/service-photos/ auth, DELETE /api/service-photos/{photo_id} auth). Auth validation works correctly - all write operations require barber authentication. Toggle is_active on promotions correctly shows/hides from public list.",
+  "tested_features": {
+    "health_check": "PASS - GET /api/health returns healthy status",
+    "promotions_list_public": "PASS - GET /api/promotions/ returns active promotions (public, no auth)",
+    "promotions_all_requires_auth": "PASS - GET /api/promotions/all returns 401/403 without auth",
+    "promotions_all_with_auth": "PASS - GET /api/promotions/all returns barber's promotions with auth",
+    "promotions_create_requires_auth": "PASS - POST /api/promotions/ returns 401/403 without auth",
+    "promotions_create_full": "PASS - POST /api/promotions/ creates promotion with title, description, discount_percent, code, valid_until",
+    "promotions_create_minimal": "PASS - POST /api/promotions/ creates promotion with title only (optional fields)",
+    "promotions_update_requires_auth": "PASS - PUT /api/promotions/{id} returns 401/403 without auth",
+    "promotions_update_title": "PASS - PUT /api/promotions/{id} updates title",
+    "promotions_update_discount": "PASS - PUT /api/promotions/{id} updates discount_percent",
+    "promotions_update_persisted": "PASS - Updates correctly persisted in database",
+    "promotions_toggle_inactive": "PASS - PUT /api/promotions/{id} with is_active=false hides from public list",
+    "promotions_toggle_active": "PASS - PUT /api/promotions/{id} with is_active=true shows in public list",
+    "promotions_delete_requires_auth": "PASS - DELETE /api/promotions/{id} returns 401/403 without auth",
+    "promotions_delete": "PASS - DELETE /api/promotions/{id} removes promotion",
+    "promotions_404_update": "PASS - PUT /api/promotions/999999 returns 404",
+    "promotions_404_delete": "PASS - DELETE /api/promotions/999999 returns 404",
+    "photos_list_public": "PASS - GET /api/service-photos/{service_id} returns photos (public, no auth)",
+    "photos_upload_requires_auth": "PASS - POST /api/service-photos/ returns 401/403 without auth",
+    "photos_upload_with_caption": "PASS - POST /api/service-photos/ uploads photo with base64 data and caption",
+    "photos_upload_no_caption": "PASS - POST /api/service-photos/ uploads photo without caption (optional)",
+    "photos_verify_in_list": "PASS - Uploaded photo appears in service photos list",
+    "photos_nonexistent_service": "PASS - GET /api/service-photos/999999 returns empty list",
+    "photos_delete_requires_auth": "PASS - DELETE /api/service-photos/{id} returns 401/403 without auth",
+    "photos_delete": "PASS - DELETE /api/service-photos/{id} removes photo",
+    "photos_404_delete": "PASS - DELETE /api/service-photos/999999 returns 404",
+    "full_promotion_flow": "PASS - create -> list all -> update -> toggle inactive -> list public -> delete",
+    "full_photo_flow": "PASS - upload -> list -> delete -> verify removed"
+  },
+  "mocked_apis_note": "WhatsApp Business API is MOCKED - will fail gracefully without real Meta API credentials"
+}

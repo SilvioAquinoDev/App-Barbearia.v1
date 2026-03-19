@@ -1,3 +1,10 @@
+import asyncio
+import sys
+
+   # No Windows, força o uso do SelectorEventLoopPolicy
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import NullPool
