@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, RefreshControl,
+  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, RefreshControl,Switch,
 } from 'react-native';
 import { useStore } from '../../src/store/useStore';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -78,7 +78,11 @@ export default function Services() {
                 <Text style={[styles.serviceName, { color: theme.text }]}>{item.name}</Text>
                 {item.description && <Text style={[styles.serviceDescription, { color: theme.textSecondary }]}>{item.description}</Text>}
               </View>
-              <TouchableOpacity onPress={() => handleToggleActive(item)} style={[styles.statusDot, { backgroundColor: item.is_active ? '#34C759' : theme.textMuted }]} />
+              <View style={styles.activeToggle}>
+                <Text style={[styles.activeLabel, { color: theme.textSecondary }]}>{item.is_active ? 'Ativo' : 'Inativo'}</Text>
+                <Switch value={item.is_active} onValueChange={() => handleToggleActive(item)} trackColor={{ true: '#34C759', false: theme.border }} />
+              </View>
+              {/*<TouchableOpacity onPress={() => handleToggleActive(item)} style={[styles.statusDot, { backgroundColor: item.is_active ? '#34C759' : theme.textMuted }]} />*/}
             </View>
             <View style={styles.serviceDetails}>
               <View style={styles.detailRow}>
@@ -124,6 +128,8 @@ export default function Services() {
 }
 
 const styles = StyleSheet.create({
+  activeToggle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  activeLabel: { fontSize: 12 },
   container: { flex: 1 },
   list: { padding: 16 },
   addButton: { marginBottom: 16 },

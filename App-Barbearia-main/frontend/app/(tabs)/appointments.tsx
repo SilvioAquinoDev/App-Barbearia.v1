@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   filterBar: { flexDirection: 'row', padding: 12, borderBottomWidth: 1 },
   filterButton: { flex: 1, paddingVertical: 8, paddingHorizontal: 8, marginHorizontal: 4, borderRadius: 8, alignItems: 'center' },
-  filterText: { fontSize: 13, fontWeight: '600' },
+  filterText: { fontSize: 11, fontWeight: '600' },
   list: { padding: 16 },
   empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   emptyText: { marginTop: 16, fontSize: 16 },
