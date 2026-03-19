@@ -78,7 +78,19 @@
 .service-card.selected {
   border-color: #007AFF;
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  background: #007AFF;
+  color: white;
 }
+
+/*--------------------------*/
+
+.service-card.selected p,
+.service-card.selected .price{
+  color: white !important;
+}
+
+
+/*--------------------------*/
 
 .service-card h3 {
   font-size: 1.3rem;
@@ -144,7 +156,7 @@
 }
 
 .date-day {
-  font-size: 0.8rem;
+  font-size: 0.9rem !important;
   text-transform: uppercase;
   opacity: 0.8;
   margin-bottom: 5px;
@@ -160,6 +172,22 @@
   font-size: 0.85rem;
   text-transform: capitalize;
 }
+
+/*-----------------------------*/
+
+.date-card.selected,
+.date-card.selected .date-day,
+.date-card.selected .date-number,
+.date-card.selected .date-month {
+  color: white !important;
+}
+
+.date-card.selected .date-day,
+.date-card.selected .date-month {
+  opacity: 1; /* Remove a opacidade reduzida quando selecionado */
+}
+
+/*-----------------------------*/
 
 .times-grid {
   display: grid;
@@ -296,3 +324,31 @@
   color: #856404;
   margin: 0;
 }
+
+
+/*8888888888888888888888888888888888
+
+
+.service-card.selected {
+  border: 3px solid #667eea;
+  transform: scale(1.02);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecf5 100%);
+}
+
+.service-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}*/
+
+
+
+
+
+
+

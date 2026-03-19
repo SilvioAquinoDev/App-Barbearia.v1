@@ -15,7 +15,7 @@ export default function Home() {
             Agende seu horário com os melhores profissionais
           </p>
           <div className="hero-buttons">
-            <Link to="/agendar" className="btn-primary">
+            <Link to="/agendar-publico" className="btn-primary">
               Agendar Agora
             </Link>
             <Link to="/registrar" className="btn-secondary">

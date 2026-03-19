@@ -9,16 +9,16 @@
   },
   "services_endpoints": {
     "get_services": {
-      "status": "FAIL",
-      "reason": "HTTP 500",
-      "response": "Internal Server Error"
+      "status": "PASS",
+      "response": [],
+      "note": "Returned 0 services"
     }
   },
   "products_endpoints": {
     "get_products": {
-      "status": "FAIL",
-      "reason": "HTTP 500",
-      "response": "Internal Server Error"
+      "status": "PASS",
+      "response": [],
+      "note": "Returned 0 products"
     }
   },
   "appointments_endpoints": {

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 
-const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 'https://barber-dashboard-14.preview.emergentagent.com';
+const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 'https://cutflow-8.preview.emergentagent.com';
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,

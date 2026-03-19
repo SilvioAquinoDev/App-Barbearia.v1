@@ -17,7 +17,14 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Relationships
-    appointments: Mapped[List["Appointment"]] = relationship("Appointment", back_populates="client", foreign_keys="Appointment.client_id")
+    #appointments: Mapped[List["Appointment"]] = relationship("Appointment", back_populates="client", foreign_keys="Appointment.client_id")
+    # Relationships - agora pode ser None para agendamentos de visitantes
+    appointments: Mapped[List["Appointment"]] = relationship(
+        "Appointment", 
+        back_populates="client", 
+        foreign_keys="Appointment.client_id"
+    )
+
 
 class UserSession(Base):
     """User session for authentication"""
@@ -68,10 +75,19 @@ class Appointment(Base):
     notification_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Novos campos para agendamentos públicos (usando a sintaxe correta)
+    client_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Nome do cliente (para visitantes)
+    client_phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # Telefone do cliente
+    client_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Email do cliente (opcional)
+    is_guest: Mapped[bool] = mapped_column(Boolean, default=False)  # True se for agendamento de visitante
     
     # Relationships
-    client: Mapped[User] = relationship("User", back_populates="appointments", foreign_keys=[client_id])
+    #client: Mapped[User] = relationship("User", back_populates="appointments", foreign_keys=[client_id])
+    #service: Mapped[Service] = relationship("Service")
+    client: Mapped[Optional[User]] = relationship("User", back_populates="appointments", foreign_keys=[client_id])
     service: Mapped[Service] = relationship("Service")
+
+
 
 class CashRegister(Base):
     """Cash register model"""

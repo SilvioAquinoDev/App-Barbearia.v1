@@ -1,9 +1,26 @@
-import React from 'react';
+/*import React from 'react';
 import './Card.css';
 
 export default function Card({ children, className = '' }) {
   return (
     <div className={`card ${className}`}>
+      {children}
+    </div>
+  );
+}*/
+
+
+// components/Card.jsx
+import React from 'react';
+import './Card.css';
+
+export default function Card({ children, className = '', onClick = null }) {
+  return (
+    <div 
+      className={`card ${className}`} 
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
+    >
       {children}
     </div>
   );

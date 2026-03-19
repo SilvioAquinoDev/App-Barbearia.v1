@@ -9,7 +9,7 @@ import json
 from typing import Dict, Any
 
 class BarbershopAPITester:
-    def __init__(self, base_url: str = "https://barber-dashboard-14.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://cutflow-8.preview.emergentagent.com"):
         self.base_url = base_url
         self.session = requests.Session()
         self.test_results = {

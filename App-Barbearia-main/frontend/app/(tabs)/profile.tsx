@@ -16,7 +16,7 @@ import api from '../../src/services/api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, checkAuth } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -56,9 +56,8 @@ export default function Profile() {
           onPress: async () => {
             try {
               await api.post('/auth/promote-to-barber');
-              Alert.alert('Sucesso', 'Você agora é um barbeiro!');
-              // Reload user data
-              router.replace('/');
+              await checkAuth(); // Refresh user data in context
+              Alert.alert('Sucesso', 'Você agora é um barbeiro! Todas as funcionalidades de gerenciamento foram desbloqueadas.');
             } catch (error) {
               Alert.alert('Erro', 'Falha ao promover usuário');
             }
