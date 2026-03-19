@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+{/*import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Alert, Platform, TouchableOpacity } from 'react-native';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
@@ -82,5 +82,131 @@ const styles = StyleSheet.create({
   dividerText: { marginHorizontal: 12, fontSize: 14 },
   bookingHint: { textAlign: 'center', fontSize: 12, marginTop: 8 },
   serverConfigLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 20, paddingVertical: 8 },
+  serverConfigText: { fontSize: 14, fontWeight: '500' },
+});*/}
+
+
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, Alert, Platform, TouchableOpacity, Image } from 'react-native';
+import { useAuth } from '../src/contexts/AuthContext';
+import { useTheme } from '../src/contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import Button from '../src/components/Button';
+
+export default function Login() {
+  const { login } = useAuth();
+  const { theme } = useTheme();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try { await login(); router.replace('/(tabs)'); }
+    catch { Alert.alert('Erro', 'Falha ao fazer login. Tente novamente.'); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={styles.content}>
+        {/*<View style={styles.header}>
+          <Text style={styles.icon}>💈</Text>
+          <Text style={[styles.title, { color: '#f78504' }]}>Barbershop Manager</Text>
+          <Text style={[styles.subtitle, { color: '#f39c38' }]}>Gerencie sua barbearia de forma simples e eficiente</Text>
+        </View>
+
+         Container centralizado para a imagem */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={require('../assets/images/logotype.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+        <View style={styles.footer}>
+          <Button
+            title="Entrar com Google"
+            onPress={handleLogin}
+            loading={loading}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function FeatureItem({ icon, text, theme }: { icon: string; text: string; theme: any }) {
+  return (
+    <View style={[styles.featureItem, { backgroundColor: theme.card, borderColor: theme.border }]}>
+      <Ionicons name={icon as any} size={24} color={theme.primary} style={{ marginRight: 16 }} />
+      <Text style={[styles.featureText, { color: theme.text }]}>{text}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: { 
+    flex: 1, 
+    paddingHorizontal: 24, 
+    justifyContent: 'space-between', 
+    paddingTop: 60, 
+    paddingBottom: 40 
+  },
+  header: { alignItems: 'center' },
+  icon: { fontSize: 50, marginBottom: 20 },
+  title: { fontSize: 32, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
+  subtitle: { fontSize: 16, textAlign: 'center', lineHeight: 24 },
+  
+  // Novo estilo para centralizar a imagem
+  imageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  
+  // Estilo atualizado para a logo
+  logo: {
+    width: '100%',
+    height: undefined,
+    aspectRatio: 1, // Mantém a proporção da imagem
+    maxWidth: 300, // Tamanho máximo em telas grandes
+    maxHeight: 300,
+  },
+  
+  features: { marginTop: 40 },
+  featureItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 16, 
+    borderRadius: 12, 
+    marginBottom: 12, 
+    borderWidth: 1 
+  },
+  featureText: { fontSize: 16, fontWeight: '500' },
+  footer: { 
+    marginTop: 40, 
+    marginBottom: 100,
+  },
+  
+  divider: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginVertical: 16
+  },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { marginHorizontal: 12, fontSize: 14 },
+  bookingHint: { textAlign: 'center', fontSize: 12, marginTop: 8 },
+  serverConfigLink: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 6, 
+    marginTop: 20, 
+    paddingVertical: 8 
+  },
   serverConfigText: { fontSize: 14, fontWeight: '500' },
 });
