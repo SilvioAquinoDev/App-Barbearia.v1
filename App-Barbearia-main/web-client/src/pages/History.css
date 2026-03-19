@@ -27,13 +27,13 @@
 
 .tabs {
   display: flex;
-  gap: 10px;
+  gap: 1px;
   margin-bottom: 30px;
   border-bottom: 2px solid var(--divider);
 }
 
 .tab {
-  padding: 12px 24px;
+  padding: 15px 8px;
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
