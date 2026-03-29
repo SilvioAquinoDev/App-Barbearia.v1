@@ -111,6 +111,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { getAllServicesPhotos, getActiveProducts } from '../services/api';
+import api from '../services/api';
 import './Home.css';
 
 export default function Home() {
@@ -123,9 +124,12 @@ export default function Home() {
 
   // Número do WhatsApp da barbearia (substitua pelo número real)
   const WHATSAPP_NUMBER = "5511999999999"; // Formato: 55 + DDD + número
+  
+  const [shopInfo, setShopInfo] = useState(null);
 
   useEffect(() => {
     loadData();
+    api.get('/barbershop/public-info').then(res => setShopInfo(res.data)).catch(() => {});
   }, []);
 
   const loadData = async () => {
@@ -217,16 +221,29 @@ export default function Home() {
     </div>
   );
 
+  const shopName = shopInfo?.name || 'Barbershop Premium';
+  const logoUrl = shopInfo?.logo_url ? (shopInfo.logo_url.startsWith('http') ? shopInfo.logo_url : `/api${shopInfo.logo_url}`) : null;
+
   return (
     <div className="home">
       <Navbar />
       
       <section className="hero">
         <div className="hero-content">
-          <h1 className="hero-title">Barbershop Premium</h1>
+          {logoUrl && <img src={logoUrl} alt="Logo" className="hero-logo" data-testid="home-logo" />}
+          <h1 className="hero-title">{shopName}</h1>
+          {/*<h1 className="hero-title">Barbershop Premium</h1>*/}
           <p className="hero-subtitle">
             Agende seu horário com os melhores profissionais
           </p>
+          {shopInfo?.phone && (
+            <p className="hero-contact">
+              <span className="hero-contact-icon">tel</span> {shopInfo.phone}
+            </p>
+          )}
+          {shopInfo?.address && (
+            <p className="hero-address">{shopInfo.address}</p>
+          )}
           <div className="hero-buttons">
             <Link to="/agendar" className="btn-primary">
               Agendamento Rápido

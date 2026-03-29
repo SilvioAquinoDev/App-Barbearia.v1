@@ -13,6 +13,7 @@ from routes import auth_routes, service_routes, product_routes, appointment_rout
 from routes import cash_register_routes, service_history_routes, push_token_routes
 from routes import public_routes, schedule_routes, whatsapp_routes, product_sale_routes
 from routes import loyalty_routes, promotion_routes, report_routes, photo_routes
+from routes import barbershop_routes
 from services.reminder_scheduler import reminder_scheduler_loop, send_appointment_reminders
 
 # Load environment variables
@@ -60,7 +61,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["http://127.0.0.1:8081","http://localhost:3001","http://localhost:8081","http://10.0.0.179:8081","http://192.168.1.4:8081","http://10.0.0.179:3001","http://192.168.1.4:3001"],
+    allow_origins=["http://127.0.0.1:8081","http://localhost:3001","http://localhost:8081","http://10.0.0.179:8081","http://192.168.1.7:8081","http://10.0.0.179:3001","http://192.168.1.7:3001"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -86,10 +87,18 @@ app.include_router(photo_routes.router, prefix="/api")
 from routes import clients_routes
 app.include_router(clients_routes.router, prefix="/api")
 
+# Barbershop routes
+app.include_router(barbershop_routes.router, prefix="/api")
+
 # Serve uploaded product images
 uploads_dir = ROOT_DIR / "uploads" / "products"
 uploads_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/api/uploads/products", StaticFiles(directory=str(uploads_dir)), name="product-uploads")
+
+# Serve uploaded barbershop logos
+barbershop_uploads = ROOT_DIR / "uploads" / "barbershop"
+barbershop_uploads.mkdir(parents=True, exist_ok=True)
+app.mount("/api/uploads/barbershop", StaticFiles(directory=str(barbershop_uploads)), name="barbershop-uploads")
 
 @app.get("/api/health")
 async def health_check():

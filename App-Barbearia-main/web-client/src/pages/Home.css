@@ -77,6 +77,11 @@
   flex-wrap: wrap; 
 }
 
+.hero-logo { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1.5rem; object-fit: cover; border: 3px solid rgba(255,255,255,0.4); }
+.hero-contact { font-size: 1.1rem; opacity: 0.9; margin-bottom: 0.4rem; }
+.hero-contact-icon { font-weight: bold; }
+.hero-address { font-size: 1rem; opacity: 0.8; margin-bottom: 1.5rem; }
+
 .btn-primary { 
   background: white; 
   color: var(--accent); 
@@ -645,7 +650,7 @@
     grid-template-columns: repeat(2, 1fr); /* Força 2 colunas no mobile */
     gap: 1rem;
     justify-items: center; /* Centraliza os cards */
-    align-items: start;https://github.com/silvioaquino/App-Barbearia.v1.git
+    align-items: start; /* Alinha os cards ao topo */
   }
 
   .features-grid-images {

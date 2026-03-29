@@ -114,8 +114,8 @@ function StatCard({ icon, color, value, label, theme }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  periodBar: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, borderRadius: 10, padding: 3 },
+  container: { flex: 1},
+  periodBar: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, marginTop: 16, borderRadius: 10, padding: 3 },
   periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   periodText: { fontSize: 14, fontWeight: '600' },
   revenueCard: { margin: 16, marginTop: 0, borderRadius: 16, padding: 20 },

@@ -1429,6 +1429,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    marginTop: 8,
   },
   headerTitle: {
     fontSize: 24,
