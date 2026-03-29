@@ -75,56 +75,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="products"
-        options={{
-          title: 'Produtos',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cube" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="cash"
-        options={{
-          title: 'Caixa',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cash" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="schedule"
-        options={{
-          title: 'Agenda',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="loyalty"
-        options={{
-          title: 'Fidelidade',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="star" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="reports"
-        options={{
-          title: 'Relatorios',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bar-chart" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="clients"
         options={{
           title: 'Clientes',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="management"
+        options={{
+          title: 'Gestao',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="grid" size={size} color={color} />
           ),
         }}
       />
@@ -137,6 +101,13 @@ export default function TabsLayout() {
           ),
         }}
       />
+      {/* Hidden tabs - accessed via Management page */}
+      <Tabs.Screen name="cash" options={{title: 'Gestão', href: null }} />
+      <Tabs.Screen name="products" options={{title: 'Gestão', href: null }} />
+      <Tabs.Screen name="schedule" options={{title: 'Gestão', href: null }} />
+      <Tabs.Screen name="loyalty" options={{title: 'Gestão', href: null }} />
+      <Tabs.Screen name="reports" options={{title: 'Gestão', href: null }} />
+      <Tabs.Screen name="promotions-manage" options={{title: 'Gestão', href: null }} />
     </Tabs>
   );
 }

@@ -20,9 +20,11 @@ export default function Dashboard() {
   const [phoneInput, setPhoneInput] = useState('');
   const [birthDateInput, setBirthDateInput] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
+  const [shopInfo, setShopInfo] = useState(null);
 
   useEffect(() => {
     loadData();
+    loadShopInfo();
   }, []);
 
   useEffect(() => {
@@ -141,6 +143,15 @@ try {
     }
   };
 
+  const loadShopInfo = async () => {
+    try {
+      const res = await api.get('/barbershop/info');
+      if (res.data) setShopInfo(res.data);
+    } catch (error) {
+      console.error('Erro ao carregar informações da barbearia:', error);
+    }
+  }
+
   if (loading) {
     return (
       <div className="dashboard-page">
@@ -221,9 +232,20 @@ try {
       )}
 
       <div className="dashboard-container">
+        {shopInfo?.logo_url && (
+          <img 
+            src={shopInfo.logo_url.startsWith('http') ? shopInfo.logo_url : `/api${shopInfo.logo_url}`}
+            alt="Logo" 
+            className="dashboard-shop-logo"
+            data-testid="dashboard-shop-logo" 
+          />
+        )}
         <div className="dashboard-header">
           <h1>Ola, {user?.name}!</h1>
+          {shopInfo?.name && <p className="shop-name-dash" data-testid="dashboard-shop-name">{shopInfo.name}</p>}
           <p>Bem-vindo a sua area pessoal</p>
+          {shopInfo?.phone && <p className="shop-contact-dash">{shopInfo.phone}</p>}
+          {shopInfo?.address && <p className="shop-contact-dash">{shopInfo.address}</p>}
         </div>
 
         <h2>Ações Rápidas</h2>

@@ -292,8 +292,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../src/contexts/ThemeContext';
-import api from '../src/services/api';
+import { useTheme } from '../../src/contexts/ThemeContext';
+import api from '../../src/services/api';
 
 export default function PromotionsManage() {
   const { theme } = useTheme();

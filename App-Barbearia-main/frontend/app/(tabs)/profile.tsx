@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,10 @@ import {
   Alert,
   Platform,
   Switch,
+  TextInput,
+  Modal,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
@@ -23,6 +26,56 @@ export default function Profile() {
   const { theme, isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [barbershop, setBarbershop] = useState<any>(null);
+  const [showEditShop, setShowEditShop] = useState(false);
+  const [shopForm, setShopForm] = useState({ name: '', phone: '', address: '' });
+  const [savingShop, setSavingShop] = useState(false);
+
+  useEffect(() => { loadBarbershop(); }, []);
+
+  const loadBarbershop = async () => {
+    try {
+      const res = await api.get('/barbershop/mine');
+      if (res.data) {
+        setBarbershop(res.data);
+        setShopForm({ name: res.data.name || '', phone: res.data.phone || '', address: res.data.address || '' });
+      }
+    } catch { }
+  };
+
+  const handleSaveShop = async () => {
+    if (!shopForm.name.trim()) { Alert.alert('Erro', 'Nome e obrigatorio'); return; }
+    setSavingShop(true);
+    try {
+      await api.put('/barbershop/', { name: shopForm.name.trim(), phone: shopForm.phone.trim() || null, address: shopForm.address.trim() || null });
+      await loadBarbershop();
+      setShowEditShop(false);
+      Alert.alert('Sucesso', 'Dados da barbearia atualizados!');
+    } catch (err: any) {
+      Alert.alert('Erro', err?.response?.data?.detail || 'Falha ao salvar');
+    } finally { setSavingShop(false); }
+  };
+
+  const handleUploadLogo = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') { Alert.alert('Permissao', 'Precisamos de acesso a galeria.'); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+    if (result.canceled || !result.assets[0]) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', { uri: result.assets[0].uri, name: 'logo.jpg', type: 'image/jpeg' } as any);
+      await api.post('/barbershop/logo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await loadBarbershop();
+      Alert.alert('Sucesso', 'Logo atualizada!');
+    } catch { Alert.alert('Erro', 'Falha ao enviar logo'); }
+  };
+
+  const getLogoSource = () => {
+    if (!barbershop?.logo_url) return null;
+    if (barbershop.logo_url.startsWith('http')) return { uri: barbershop.logo_url };
+    return { uri: `${api.defaults.baseURL || ''}${barbershop.logo_url}` };
+  };
+
 
   const handleLogout = () => {
     const doLogout = async () => {
@@ -77,33 +130,129 @@ export default function Profile() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={styles.content}>
-      <Card style={[styles.profileCard, { backgroundColor: theme.card }]}>
-        {user?.picture ? (
-          <Image source={{ uri: user.picture }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatarPlaceholder, { backgroundColor: theme.border }]}>
-            <Ionicons name="person" size={48} color={theme.textMuted} />
+      {/*<Card style={[styles.profileCard, { backgroundColor: theme.card }]}>
+        <View style={styles.shopHeader}>
+          <TouchableOpacity onPress={handleUploadLogo} style={styles.shopLogoContainer} data-testid="profile-upload-logo">
+            {getLogoSource() ? (
+              <Image source={getLogoSource()!} style={styles.shopLogo} />
+            ) : (
+              <View style={[styles.shopLogoPlaceholder, { backgroundColor: theme.primary + '18' }]}>
+                <Ionicons name="storefront" size={28} color={theme.primary} />
+              </View>
+            )}
+            <View style={[styles.editBadge, { backgroundColor: theme.primary }]}>
+              <Ionicons name="camera" size={10} color="#FFF" />
+            </View>
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.shopNameText, { color: theme.text }]}>{barbershop.name}</Text>
+            {barbershop.phone && (
+              <View style={styles.shopInfoItem}>
+                <Ionicons name="call-outline" size={14} color={theme.textMuted} />
+                <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]}>{barbershop.phone}</Text>
+              </View>
+            )}
+            {barbershop.address && (
+              <View style={styles.shopInfoItem}>
+                <Ionicons name="location-outline" size={14} color={theme.textMuted} />
+                <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]} numberOfLines={2}>{barbershop.address}</Text>
+              </View>
+            )}
           </View>
-        )}
-        
-        <Text style={[styles.name, { color: theme.text }]}>{user?.name}</Text>
-        <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
-        
-        <View style={[styles.roleBadge, { backgroundColor: theme.primary }]}>
-          <Ionicons 
-            name={user?.role === 'barber' ? 'cut' : 'person'} 
-            size={16} 
-            color="#FFF" 
-          />
-          <Text style={styles.roleText}>
-            {user?.role === 'barber' ? 'Barbeiro' : 'Cliente'}
-          </Text>
         </View>
-      </Card>
+        <TouchableOpacity
+          style={[styles.editShopBtn, { borderColor: theme.primary }]}
+          onPress={() => setShowEditShop(true)}
+          data-testid="edit-barbershop-btn"
+        >
+          <Ionicons name="create-outline" size={16} color={theme.primary} />
+          <Text style={[styles.editShopBtnText, { color: theme.primary }]}>Editar Dados</Text>
+        </TouchableOpacity>
+      </Card>*/}
+
+      {/* Só renderiza o Card da barbearia se existir dados */}
+      {barbershop && (
+        <Card style={[styles.profileCard, { backgroundColor: theme.card }]}>
+          <View style={styles.shopHeader}>
+            <TouchableOpacity onPress={handleUploadLogo} style={styles.shopLogoContainer} data-testid="profile-upload-logo">
+              {getLogoSource() ? (
+                <Image source={getLogoSource()!} style={styles.shopLogo} />
+              ) : (
+                <View style={[styles.shopLogoPlaceholder, { backgroundColor: theme.primary + '18' }]}>
+                  <Ionicons name="storefront" size={28} color={theme.primary} />
+                </View>
+              )}
+              <View style={[styles.editBadge, { backgroundColor: theme.primary }]}>
+                <Ionicons name="camera" size={10} color="#FFF" />
+              </View>
+            </TouchableOpacity>
+            <View style={[styles.shopInfo, { flex: 1 }]}>
+              {/* Agora é seguro acessar barbershop.name porque verificamos acima */}
+              <Text style={[styles.shopNameText, { color: theme.text }]}>{barbershop.name}</Text>
+              {barbershop.phone && (
+                <View style={styles.shopInfoItem}>
+                  <Ionicons name="call-outline" size={20} color={theme.textMuted} />
+                  <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]}>{barbershop.phone}</Text>
+                </View>
+              )}
+              {barbershop.address && (
+                <View style={styles.shopInfoItem}>
+                  <Ionicons name="location-outline" size={20} color={theme.textMuted} />
+                  <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]} numberOfLines={2}>{barbershop.address}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+          <TouchableOpacity
+            style={[styles.editShopBtn, { borderColor: theme.primary }]}
+            onPress={() => setShowEditShop(true)}
+            data-testid="edit-barbershop-btn"
+          >
+            <Ionicons name="create-outline" size={16} color="#FFF" />
+            <Text style={[styles.editShopBtnText]}>Editar Dados</Text>
+          </TouchableOpacity>
+        </Card>
+      )}
+
+      {/* Barbershop Info Section 
+      {user?.role === 'barber' && barbershop && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Minha Barbearia</Text>
+          
+        </View>
+      )}*/}
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Informações</Text>
-        
+
+        <Card style={{ backgroundColor: theme.card }}>
+            <View style={styles.headerUser}>
+              {user?.picture ? (
+                <Image source={{ uri: user.picture }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: theme.border }]}>
+                  <Ionicons name="person" size={48} color={theme.textMuted} />
+                </View>
+              )}
+              <View>
+                <Text style={[styles.name, { color: theme.text }]}>{user?.name}</Text>
+                <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
+                
+              </View>
+              <View style={[styles.roleBadge, { backgroundColor: theme.primary }]}>
+                  <Ionicons
+                    name={user?.role === 'barber' ? 'cut' : 'person'}
+                    size={25}
+                    color="#FFF"
+                  />
+                  <Text style={styles.roleText}>
+                    {user?.role === 'barber' ? 'Barbeiro' : 'Cliente'}
+                  </Text>
+                </View>
+            </View>
+
+          </Card>
+
         <Card style={{ backgroundColor: theme.card }}>
           <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Meu Perfil', `Nome: ${user?.name}\nEmail: ${user?.email}\nRole: ${user?.role === 'barber' ? 'Barbeiro' : 'Cliente'}`)}>
             <View style={styles.menuItemLeft}>
@@ -135,7 +284,7 @@ export default function Profile() {
         </Card>
       </View>
 
-      {user?.role === 'barber' && (
+      {/*{user?.role === 'barber' && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Gerenciamento</Text>
           <Card style={{ backgroundColor: theme.card }}>
@@ -170,7 +319,7 @@ export default function Profile() {
             </TouchableOpacity>
           </Card>
         </View>
-      )}
+      )}*/}
 
       {user?.role !== 'barber' && (
         <View style={styles.section}>
@@ -221,6 +370,51 @@ export default function Profile() {
         loading={loading}
         style={styles.logoutButton}
       />
+
+      {/* Edit Barbershop Modal */}
+      <Modal visible={showEditShop} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowEditShop(false)}>
+        <View style={[styles.modalContainer, { backgroundColor: theme.background }]}>
+          <View style={[styles.modalHeader, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}>
+            <TouchableOpacity onPress={() => setShowEditShop(false)}>
+              <Text style={[styles.modalCancel, { color: theme.textSecondary }]}>Cancelar</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Editar Barbearia</Text>
+            <TouchableOpacity onPress={handleSaveShop} disabled={savingShop}>
+              <Text style={[styles.modalSave, { color: theme.primary }]}>{savingShop ? 'Salvando...' : 'Salvar'}</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Nome *</Text>
+            <TextInput
+              style={[styles.textInput, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
+              value={shopForm.name}
+              onChangeText={(v) => setShopForm({ ...shopForm, name: v })}
+              placeholder="Nome da barbearia"
+              placeholderTextColor={theme.textMuted}
+            />
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Telefone / WhatsApp</Text>
+            <TextInput
+              style={[styles.textInput, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
+              value={shopForm.phone}
+              onChangeText={(v) => setShopForm({ ...shopForm, phone: v })}
+              placeholder="(00) 00000-0000"
+              placeholderTextColor={theme.textMuted}
+              keyboardType="phone-pad"
+            />
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Endereco</Text>
+            <TextInput
+              style={[styles.textInput, styles.textArea, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
+              value={shopForm.address}
+              onChangeText={(v) => setShopForm({ ...shopForm, address: v })}
+              placeholder="Rua, numero, bairro, cidade"
+              placeholderTextColor={theme.textMuted}
+              multiline
+              numberOfLines={3}
+            />
+          </ScrollView>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 }
@@ -238,15 +432,15 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     marginBottom: 16,
   },
   avatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
@@ -266,16 +460,19 @@ const styles = StyleSheet.create({
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
+    height: 35,
+    marginLeft: 'auto',
     borderRadius: 20,
-    gap: 6,
+    gap: 10,
   },
   roleText: {
-    color: '#FFF',
-    fontSize: 14,
     fontWeight: '600',
+    fontSize: 15,
+    color: '#FFFFFF',
   },
   section: {
     marginTop: 24,
@@ -286,6 +483,10 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 12,
     paddingHorizontal: 4,
+  },
+  headerUser: {
+    flexDirection: 'row',
+    gap: 16,
   },
   menuItem: {
     flexDirection: 'row',
@@ -320,4 +521,87 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 32,
   },
+  shopHeader: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 14,
+  },
+  shopLogoContainer: {
+    position: 'relative',
+  },
+  shopLogo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  shopLogoPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shopInfo: {
+    alignItems: 'center',
+  },
+  shopNameText: {
+    fontSize: 25,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  shopInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 3,
+  },
+  shopInfoValue: {
+    fontSize: 16,
+    flex: 1,
+  },
+  editShopBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderRadius: 20,
+    gap: 6,
+  },
+  editShopBtnText: {
+    fontWeight: '600',
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  modalContainer: {
+    flex: 1,
+    paddingTop: 50,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+  },
+  modalCancel: { fontSize: 16 },
+  modalTitle: { fontSize: 17, fontWeight: '700' },
+  modalSave: { fontSize: 16, fontWeight: '700' },
+  inputLabel: { fontSize: 14, fontWeight: '600', marginBottom: 6, marginTop: 16 },
+  textInput: { borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
+  textArea: { height: 80, textAlignVertical: 'top' },
 });

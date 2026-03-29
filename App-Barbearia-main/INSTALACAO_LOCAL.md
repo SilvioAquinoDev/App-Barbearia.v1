@@ -61,6 +61,7 @@ pip install fastapi
 pip install httpx
 pip install pydantic[email]
 pip install exponent_server_sdk
+pip install python-multipart
 
 
 ```

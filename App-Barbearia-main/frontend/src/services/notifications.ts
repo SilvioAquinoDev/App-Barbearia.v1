@@ -66,7 +66,13 @@ export function setupNotificationListeners(
   const responseListener = Notifications.addNotificationResponseReceivedListener(onNotificationResponse);
 
   return () => {
-    Notifications.removeNotificationSubscription(notificationListener);
-    Notifications.removeNotificationSubscription(responseListener);
+    // Notifications.removeNotificationSubscription(notificationListener);
+    // Notifications.removeNotificationSubscription(responseListener);
+    if (notificationListener && typeof notificationListener.remove === 'function') {
+      notificationListener.remove();
+    }
+    if (responseListener && typeof responseListener.remove === 'function') {
+      responseListener.remove();
+    }
   };
 }

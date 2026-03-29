@@ -24,6 +24,46 @@ class ClientResponse(BaseModel):
     source: str = "appointment"  # "registered" or "appointment"
 
 
+@router.get("/birthdays")
+async def list_birthday_clients(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_barber),
+):
+    """List clients with birthdays this month"""
+    from datetime import datetime as dt
+    current_month = dt.now().month
+
+    # Registered users with birth_date in current month
+    result = await db.execute(
+        select(User).where(
+            User.role == "client",
+            func.extract("month", User.birth_date) == current_month,
+            User.birth_date.isnot(None),
+        )
+    )
+    users = result.scalars().all()
+
+    birthday_clients = []
+    for u in users:
+        stats = await db.execute(
+            select(func.count(Appointment.id)).where(
+                (Appointment.client_id == u.user_id) | (Appointment.client_email == u.email)
+            )
+        )
+        total = stats.scalar() or 0
+        birthday_clients.append({
+            "name": u.name,
+            "email": u.email,
+            "phone": u.phone,
+            "birth_date": u.birth_date.isoformat() if u.birth_date else None,
+            "birth_day": u.birth_date.day if u.birth_date else None,
+            "total_appointments": total,
+        })
+
+    birthday_clients.sort(key=lambda c: c.get("birth_day") or 32)
+    return birthday_clients
+
+
 @router.get("/")
 async def list_clients(
     db: AsyncSession = Depends(get_db),

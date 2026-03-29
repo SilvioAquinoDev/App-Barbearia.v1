@@ -24,7 +24,7 @@ function InnerLayout() {
         <Stack.Screen name="booking" />
         <Stack.Screen name="whatsapp-settings" />
         <Stack.Screen name="server-config" />
-        <Stack.Screen name="promotions-manage" />
+        {/*<Stack.Screen name="promotions-manage" />*/}
         <Stack.Screen name="service-photos" />
       </Stack>
     </SafeAreaProvider>
