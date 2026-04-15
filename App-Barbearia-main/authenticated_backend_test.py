@@ -9,7 +9,7 @@ import json
 from typing import Dict, Any, Optional
 
 class AuthenticatedBarbershopTester:
-    def __init__(self, base_url: str = "https://barber-mgmt-5.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://gestao-app-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.session = requests.Session()
         

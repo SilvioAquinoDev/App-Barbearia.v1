@@ -14,7 +14,7 @@ import os
 import time
 
 # Use the public URL for testing
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://barber-mgmt-5.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://gestao-app-1.preview.emergentagent.com')
 
 # Test session token for barber auth
 AUTH_TOKEN = "test_session_d67080ced31b476c94c1abcdb2ac405a"

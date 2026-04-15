@@ -46,6 +46,10 @@ export default function Login() {
               <span className="benefit-icon">🏷️</span>
               <span>Promoções Exclusivas</span>
             </div>
+            <div className="benefit-item">
+              <span className="benefit-icon">❌</span>
+              <span>Cancelamento sem Burocracia</span>
+            </div>
           </div>
 
           <button className="google-login-btn" onClick={handleGoogleLogin}>
@@ -58,13 +62,13 @@ export default function Login() {
             Entrar com Google
           </button>
 
-          <div className="login-divider">
+          {/*<div className="login-divider">
             <span>ou</span>
           </div>
 
           <Link to="/agendar" className="public-booking-link">
             Agendar sem fazer login
-          </Link>
+          </Link>*/}
         </Card>
       </div>
     </div>

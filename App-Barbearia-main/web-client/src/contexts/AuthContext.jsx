@@ -28,9 +28,15 @@ export function AuthProvider({ children }) {
 
   const handleOAuthCallback = async (sessionId) => {
     try {
-      const response = await api.post('/auth/session', null, {
+      /*const response = await api.post('/auth/session', null, {
         params: { session_id: sessionId }
+      });*/
+
+      // Mudança: enviar session_id no corpo da requisição
+      const response = await api.post('/auth/session', {
+        session_id: sessionId  // ← Agora vai no body
       });
+
       const { user: userData, session_token } = response.data;
       localStorage.setItem('client_token', session_token);
       api.defaults.headers.common['Authorization'] = `Bearer ${session_token}`;

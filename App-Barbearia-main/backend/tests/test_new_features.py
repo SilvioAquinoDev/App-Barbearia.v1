@@ -12,7 +12,7 @@ import sys
 
 sys.path.insert(0, '/app/backend')
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://barber-mgmt-5.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://gestao-app-1.preview.emergentagent.com')
 
 
 # ============ Helper: Get Test Token ============

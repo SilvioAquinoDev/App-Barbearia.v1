@@ -25,7 +25,7 @@ const MENU_ITEMS: MenuItem[] = [
   { title: 'Fidelidade', subtitle: 'Programa de pontos', icon: 'star', route: '/(tabs)/loyalty', color: '#FFD700' },
   { title: 'Relatorios', subtitle: 'Financeiro e desempenho', icon: 'bar-chart', route: '/(tabs)/reports', color: '#5856D6' },
   { title: 'Promocoes', subtitle: 'Ofertas e descontos', icon: 'pricetag', route: '/promotions-manage', color: '#AF52DE' },
-  { title: 'WhatsApp', subtitle: 'Configurar notificacoes', icon: 'logo-whatsapp', route: '/whatsapp-settings', color: '#25D366' },
+  { title: 'WhatsApp', subtitle: 'Evolution API - Pairing Code', icon: 'logo-whatsapp', route: '/evolution-settings', color: '#25D366' },
 ];
 
 export default function Management() {
@@ -38,7 +38,7 @@ export default function Management() {
       contentContainerStyle={styles.content}
     >
       <Text style={[styles.pageTitle, { color: theme.textSecondary }]}>
-        Ferramentas de Gestão da Barbearia
+        Ferramentas de gestao da barbearia
       </Text>
 
       <View style={styles.grid}>
@@ -66,7 +66,7 @@ export default function Management() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },
-  pageTitle: { fontSize: 20, marginBottom: 16 },
+  pageTitle: { fontSize: 14, marginBottom: 16 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   card: {
     width: '47.5%',

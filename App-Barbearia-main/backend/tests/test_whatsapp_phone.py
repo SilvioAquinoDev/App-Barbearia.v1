@@ -17,7 +17,7 @@ import requests
 import os
 
 # Use the external URL for testing
-BASE_URL = "https://barber-mgmt-5.preview.emergentagent.com"
+BASE_URL = "https://gestao-app-1.preview.emergentagent.com"
 
 # Barber session token from test context
 BARBER_TOKEN = "session_3d0a8ec778fd4062947268666bcff5c4"

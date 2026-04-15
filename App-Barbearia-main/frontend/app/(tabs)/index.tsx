@@ -50,14 +50,16 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    if (!user) return;
     loadData();
     setupPushNotifications();
+    checkBarbershop();
     const cleanup = setupNotificationListeners(
       () => loadData(),
       () => {}
     );
     return cleanup;
-  }, []);
+  }, [user]);
 
   const setupPushNotifications = async () => {
     try { await registerForPushNotificationsAsync(); } catch (e) {}
@@ -82,25 +84,26 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       const [appointmentsRes, servicesRes, cashRes, birthdayRes] = await Promise.all([
-        api.get('/appointments'),
-        api.get('/services'),
+        api.get('/appointments').catch(() => ({ data: [] })),
+        api.get('/services').catch(() => ({ data: [] })),
         api.get('/cash-register/current').catch(() => ({ data: null })),
         api.get('/clients/birthdays').catch(() => ({ data: [] })),
       ]);
-      setAppointments(appointmentsRes.data);
-      setServices(servicesRes.data);
+      setAppointments(appointmentsRes.data || []);
+      setServices(servicesRes.data || []);
       setCurrentCashRegister(cashRes.data);
       setBirthdayClients(birthdayRes.data || []);
       const today = new Date().toISOString().split('T')[0];
-      const todayAppts = appointmentsRes.data.filter((a: any) => a.scheduled_time.startsWith(today)).length;
-      const pending = appointmentsRes.data.filter((a: any) => a.status === 'pending').length;
-      setStats({ todayAppointments: todayAppts, pendingAppointments: pending, totalServices: servicesRes.data.length });
+      const appts = appointmentsRes.data || [];
+      const todayAppts = appts.filter((a: any) => a.scheduled_time?.startsWith(today)).length;
+      const pending = appts.filter((a: any) => a.status === 'pending').length;
+      setStats({ todayAppointments: todayAppts, pendingAppointments: pending, totalServices: (servicesRes.data || []).length });
     } catch (error: any) {
       if (error.response?.status !== 404) Alert.alert('Erro', 'Falha ao carregar dados');
     }
   };
 
-  const onRefresh = async () => { setRefreshing(true); await loadData(); setRefreshing(false); };
+  const onRefresh = async () => { setRefreshing(true); await loadData(); checkBarbershop(); setRefreshing(false); };
 
   const sendBirthdayMessage = (client: BirthdayClient) => {
     if (!client.phone) {
@@ -138,6 +141,7 @@ export default function Dashboard() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
     >
+      {/* Welcome with barbershop info */}
       <View style={styles.welcome}>
         <View style={styles.welcomeRow}>
           {getLogoSource() && (
@@ -153,10 +157,6 @@ export default function Dashboard() {
             </Text>
           </View>
         </View>
-        {/*<Text style={[styles.welcomeText, { color: theme.text }]}>Ola, {user?.name}!</Text>
-        <Text style={[styles.welcomeSubtext, { color: theme.textSecondary }]}>
-          {currentCashRegister ? 'Caixa aberto' : 'Caixa fechado'}
-        </Text>*/}
         {barbershop?.phone && (
           <View style={styles.shopInfoRow}>
             <Ionicons name="call-outline" size={14} color={theme.textMuted} />
@@ -188,31 +188,6 @@ export default function Dashboard() {
           </View>
         </Card>
       )}
-
-      {/* Recent Appointments */}
-      <Card>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Agendamentos Recentes</Text>
-        {appointments.slice(0, 5).length === 0 ? (
-          <Text style={[styles.emptyText, { color: theme.textMuted }]}>Nenhum agendamento</Text>
-        ) : (
-          appointments.slice(0, 5).map((apt: any) => (
-            <View key={apt.id} style={[styles.appointmentItem, { borderBottomColor: theme.divider }]}>
-              <View style={{flex: 1}}>
-                <Text style={[styles.appointmentTime, { color: theme.text }]}>
-                  {new Date(apt.scheduled_time).toLocaleString('pt-BR')}
-                </Text>
-                {apt.client_name && (
-                  <Text style={[styles.appointmentClient, { color: theme.primary }]}>{apt.client_name}</Text>
-                )}
-                <Text style={[styles.appointmentStatus, { color: apt.status === 'pending' ? '#FF9500' : apt.status === 'confirmed' ? '#34C759' : theme.textSecondary }]}>
-                  {apt.status === 'pending' ? 'Pendente' : apt.status === 'confirmed' ? 'Confirmado' : apt.status === 'completed' ? 'Concluido' : apt.status === 'cancelled' ? 'Cancelado' : apt.status}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
-            </View>
-          ))
-        )}
-      </Card>
 
       {/* Birthday Clients */}
       {birthdayClients.length > 0 && (
@@ -248,6 +223,31 @@ export default function Dashboard() {
           ))}
         </Card>
       )}
+
+      {/* Recent Appointments */}
+      <Card>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Agendamentos Recentes</Text>
+        {appointments.slice(0, 5).length === 0 ? (
+          <Text style={[styles.emptyText, { color: theme.textMuted }]}>Nenhum agendamento</Text>
+        ) : (
+          appointments.slice(0, 5).map((apt: any) => (
+            <View key={apt.id} style={[styles.appointmentItem, { borderBottomColor: theme.divider }]}>
+              <View style={{flex: 1}}>
+                <Text style={[styles.appointmentTime, { color: theme.text }]}>
+                  {new Date(apt.scheduled_time).toLocaleString('pt-BR')}
+                </Text>
+                {apt.client_name && (
+                  <Text style={[styles.appointmentClient, { color: theme.primary }]}>{apt.client_name}</Text>
+                )}
+                <Text style={[styles.appointmentStatus, { color: apt.status === 'pending' ? '#FF9500' : apt.status === 'confirmed' ? '#34C759' : theme.textSecondary }]}>
+                  {apt.status === 'pending' ? 'Pendente' : apt.status === 'confirmed' ? 'Confirmado' : apt.status === 'completed' ? 'Concluido' : apt.status === 'cancelled' ? 'Cancelado' : apt.status}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+            </View>
+          ))
+        )}
+      </Card>
     </ScrollView>
   );
 }
@@ -268,9 +268,9 @@ const styles = StyleSheet.create({
   welcome: { marginBottom: 24 },
   welcomeRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   shopLogo: { width: 48, height: 48, borderRadius: 24 },
-  welcomeText: { fontSize: 28, fontWeight: 'bold', marginBottom: 4 },
+  welcomeText: { fontSize: 22, fontWeight: 'bold', marginBottom: 2 },
   shopName: { fontSize: 14, fontWeight: '600' },
-  welcomeSubtext: { fontSize: 16 },
+  welcomeSubtext: { fontSize: 14, marginTop: 2 },
   shopInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, marginLeft: 60 },
   shopInfoText: { fontSize: 12 },
   statsGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },

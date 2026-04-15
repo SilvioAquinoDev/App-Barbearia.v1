@@ -13,7 +13,7 @@ import random
 from datetime import datetime, timedelta
 
 # Use public URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://barber-mgmt-5.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://gestao-app-1.preview.emergentagent.com').rstrip('/')
 
 # Auth token for barber (from review_request)
 BARBER_SESSION = "session_3d0a8ec778fd4062947268666bcff5c4"

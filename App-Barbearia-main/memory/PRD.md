@@ -1,100 +1,102 @@
 # Barbershop Manager - PRD
 
 ## Problema Original
-Aplicativo completo de gerenciamento de barbearia com app mobile (React Native/Expo), web client (React/Vite) e backend (FastAPI/PostgreSQL).
+Aplicativo completo de gerenciamento de barbearia com app mobile (React Native/Expo), web client (React/Vite) e backend (FastAPI/PostgreSQL). Arquitetura SaaS com suporte a multiplas barbearias.
 
 ## Personas
-- **Barbeiro**: Gerencia agendamentos, produtos, caixa, clientes, notificacoes
+- **Barbeiro/Dono**: Gerencia agendamentos, produtos, caixa, clientes, notificacoes, barbearia
 - **Cliente**: Agenda servicos, acompanha fidelidade, recebe notificacoes
-
-## Requisitos Core
-1. Autenticacao via Google OAuth (Emergent Auth)
-2. Gestao de servicos, produtos, agendamentos
-3. Sistema de caixa registradora
-4. Programa de fidelidade
-5. Promocoes
-6. Notificacoes Push (Expo) e WhatsApp (WaSenderAPI)
-7. Gestao de clientes (CRM basico)
-8. Agendamento publico (sem login)
-9. Dark mode (web e mobile)
 
 ## Arquitetura
 ```
 /app
 ├── backend/          # FastAPI + PostgreSQL (NeonDB)
-│   ├── server.py
-│   ├── models.py
-│   ├── schemas.py
-│   ├── notification_service.py  # Push + WhatsApp unificado
+│   ├── server.py          # App principal + serve web-client em /api/web/
+│   ├── models.py          # User (c/ web_push_subscription), Barbershop, Appointment, Service, etc.
+│   ├── notification_service.py  # Dispatcher unificado: Web Push, Expo Push, Evolution API
+│   ├── services/
+│   │   └── reminder_scheduler.py  # Loop background a cada 5min
 │   └── routes/
-│       ├── auth_routes.py
-│       ├── appointment_routes.py
-│       ├── clients_routes.py     # CRM de clientes
-│       ├── public_routes.py      # Booking sem auth
-│       ├── whatsapp_routes.py    # WaSenderAPI
+│       ├── web_push_routes.py     # VAPID + subscribe/unsubscribe
+│       ├── evolution_routes.py    # Setup, status, create-instance, pairing-code
+│       ├── barbershop_routes.py   # SaaS: CRUD barbearia + logo + public-info
+│       ├── clients_routes.py      # CRM + aniversariantes
+│       ├── appointment_routes.py  # CRUD + notificacoes em background
+│       ├── public_routes.py       # Booking publico
 │       └── ...
 ├── frontend/         # Expo React Native (Mobile)
-│   └── app/(tabs)/
-│       ├── clients.tsx           # Tela de clientes
-│       └── ...
-└── web-client/       # React Vite (Web para clientes)
-    └── src/pages/
-        ├── Dashboard.jsx         # Popup perfil (phone + birth_date)
-        └── ...
+│   └── app/
+│       ├── barbershop-setup.tsx   # Onboarding primeira vez
+│       ├── evolution-settings.tsx # Configuracao WhatsApp Evolution API
+│       ├── login.tsx              # Com logo da barbearia
+│       └── (tabs)/
+│           ├── index.tsx          # Dashboard com aniversariantes + info barbearia
+│           ├── management.tsx     # Gestao consolidada (c/ link Evolution settings)
+│           ├── clients.tsx
+│           └── profile.tsx
+└── web-client/       # React Vite (Web para clientes) - servido em /api/web/
+    ├── public/
+    │   └── sw.js              # Service Worker para Web Push
+    └── src/
+        ├── services/
+        │   ├── api.js         # Axios com base /api
+        │   └── pushService.js # Subscription Web Push + VAPID
+        └── pages/
+            ├── Home.jsx       # Info publica da barbearia
+            └── Dashboard.jsx  # Push notification init + profile popup
 ```
 
-## O que foi Implementado
+## Implementado
 
-### Sessao Atual (18/03/2026)
-- [x] **Fix critico**: Corrigido erro de sintaxe em appointment_routes.py (parentese extra)
-- [x] **Backend - Endpoint de perfil expandido**: PUT /api/auth/update-phone agora aceita `phone` E `birth_date`
-- [x] **Backend - Notificacoes no booking publico**: POST /api/public/book agora dispara notificacoes Push + WhatsApp
-- [x] **Mobile - Tela de Clientes**: Nova aba "Clientes" com listagem, busca, e detalhes (nome, email, telefone, nascimento, total de atendimentos)
-- [x] **Web - Popup de Perfil Completo**: Dashboard agora solicita telefone E data de nascimento quando faltam dados
-- [x] **Web Client servido via Nginx**: Build da app Vite servida em porta 80
+### Sessao Atual (13/04/2026)
+- [x] **Sistema de Notificacoes Multi-Canal Completo**:
+  - Web Push (VAPID) - Service Worker + subscribe/unsubscribe
+  - Expo Push - Envio via Expo Push API para barbeiros
+  - Evolution API (WhatsApp) - Tratamento gracioso quando nao configurada
+- [x] **Bugs criticos corrigidos**:
+  - `notification_service.py`: Referencia a `apt.barber_id` inexistente → consulta todos barbeiros por role
+  - `Dashboard.jsx`: `initPushNotifications()` nao definida → adicionada funcao
+  - `.env` carregado APOS imports → movido antes dos imports (VAPID keys vazias)
+  - `_send_notifications_bg`: Sessao DB do request fechada → cria propria sessao
+  - `_send_notifications_bg`: Parametro `action` faltando no create_appointment
+  - Codigo duplicado `send_whatsapp` → unificado com `send_evolution_message`
+  - `public_routes.py`: Background task com sessao do request → propria sessao
+- [x] Web-client servido via FastAPI em `/api/web/` (Expo ocupa porta 3000)
+- [x] Coluna `web_push_subscription` adicionada na tabela `users` (migration)
+- [x] Rebuild do web-client com base path `/api/web/`
 
-### Sessoes Anteriores
-- [x] Dark mode completo (web)
-- [x] Upload de imagem para produtos (mobile)
-- [x] Popup de telefone no dashboard (web)
-- [x] Historico e fidelidade com busca automatica por email/telefone (web)
-- [x] Refatoracao do notification_service.py (Push + WhatsApp unificado)
-- [x] Endpoints de clientes (clients_routes.py)
-- [x] WaSenderAPI setup/connect/qrcode/status/disconnect endpoints
-- [x] Programa de fidelidade completo
-- [x] Sistema de promocoes
-- [x] Caixa registradora
+### Sessoes Anteriores (20/03/2026)
+- [x] Modelo Barbershop SaaS (CRUD + logo upload + public-info)
+- [x] Onboarding barbearia no primeiro login do barbeiro
+- [x] Dashboard com aniversariantes do mes + botao WhatsApp (wa.me)
+- [x] Tabs consolidadas: Gestao (Caixa, Produtos, Agenda, Fidelidade, Relatorios, Promocoes, WhatsApp)
+- [x] Perfil da Barbearia: logo upload, telefone, endereco, modal de edicao
+- [x] Login com logo e nome da barbearia
+- [x] Web Home e Dashboard com info da barbearia
+- [x] Bug fixes criticos: crash removeNotificationSubscription, race condition interceptor 401
+- [x] Tela de Clientes (mobile) com busca
+- [x] Popup de perfil (phone + birth_date) no web
+- [x] Dark mode, upload de imagem de produtos
+- [x] WaSenderAPI endpoints (substituido por Evolution API)
+- [x] Programa de fidelidade, promocoes, caixa registradora
 - [x] Relatorios financeiros
 - [x] Sistema de agendamento publico e autenticado
-- [x] Disponibilidade de horarios (barber_availability)
-- [x] Tela "Configurar Servidor" no mobile
 
 ## Testes
-- Backend: 23/23 testes passaram (iteration_9.json)
-- Web Client: Popup de perfil validado visualmente
-- Mobile: Tela de clientes criada e layout atualizado
+- Backend iteration 11: 19/19 (100%) - Notificacoes, Web Push, Evolution API, Web-client
+- Backend iteration 9-10: 100% (sessoes anteriores)
 
-## Backlog Priorizado
+## Backlog
 
-### P0 (Critico)
-- Nenhum
-
-### P1 (Alta Prioridade)
+### P1
 - Agendamento Online com Pagamento Pix
 - Guiar usuario sobre "Configurar Servidor" no mobile
-- Login no dispositivo fisico
 
-### P2 (Media)
-- Implementar Arquitetura SaaS (SAAS_CHANGES.md)
-- Melhorar Relatorios Financeiros
-- Corrigir botoes de Cancelar Agendamento e Logout
+### P2
+- Isolamento multi-tenant completo (barbershop_id em todas as tabelas)
+- Melhorar Relatorios Financeiros (receita mensal, ticket medio, top servicos)
+- Corrigir botoes "Cancelar Agendamento" e "Logout"
 
-### P3 (Baixa)
-- Lembretes automaticos de agendamento
+### P3
+- Lembretes automaticos de agendamento (scheduler implementado, precisa testar c/ dados reais)
 - Exportacao de dados/relatorios
-
-## Integracoes 3rd Party
-- **WaSenderAPI**: WhatsApp messaging (requer API Key do usuario)
-- **Expo Push**: Notificacoes push (integrado)
-- **NeonDB**: PostgreSQL hospedado
-- **Emergent Google Auth**: Login social

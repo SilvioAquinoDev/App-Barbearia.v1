@@ -4,7 +4,7 @@
 
 Você está tentando usar o app localmente, mas ele está configurado para o preview do Emergent:
 ```
-https://barber-mgmt-5.preview.emergentagent.com
+https://gestao-app-1.preview.emergentagent.com
 ```
 
 Precisa configurar para usar seu backend local!
@@ -38,8 +38,8 @@ Edite `frontend/.env`:
 EXPO_PUBLIC_BACKEND_URL=http://localhost:8001
 
 # Mantenha o resto:
-EXPO_TUNNEL_SUBDOMAIN=barber-mgmt-5
-EXPO_PACKAGER_HOSTNAME=https://barber-mgmt-5.preview.emergentagent.com
+EXPO_TUNNEL_SUBDOMAIN=gestao-app-1
+EXPO_PACKAGER_HOSTNAME=https://gestao-app-1.preview.emergentagent.com
 EXPO_USE_FAST_RESOLVER=1
 METRO_CACHE_ROOT=/app/frontend/.metro-cache
 ```
@@ -52,8 +52,8 @@ Edite `frontend/.env`:
 EXPO_PUBLIC_BACKEND_URL=http://192.168.1.100:8001
 
 # Mantenha o resto:
-EXPO_TUNNEL_SUBDOMAIN=barber-mgmt-5
-EXPO_PACKAGER_HOSTNAME=https://barber-mgmt-5.preview.emergentagent.com
+EXPO_TUNNEL_SUBDOMAIN=gestao-app-1
+EXPO_PACKAGER_HOSTNAME=https://gestao-app-1.preview.emergentagent.com
 EXPO_USE_FAST_RESOLVER=1
 METRO_CACHE_ROOT=/app/frontend/.metro-cache
 ```

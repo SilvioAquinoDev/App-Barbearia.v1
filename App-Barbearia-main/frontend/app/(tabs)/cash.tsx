@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Modal, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, Modal, RefreshControl } from 'react-native';
 import { useStore } from '../../src/store/useStore';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import Card from '../../src/components/Card';
@@ -9,7 +9,6 @@ import api from '../../src/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useRouter } from 'expo-router';
 
 export default function Cash() {
   const { theme } = useTheme();
@@ -20,7 +19,6 @@ export default function Cash() {
   const [openingBalance, setOpeningBalance] = useState('');
   const [closingBalance, setClosingBalance] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => { loadCurrentCash(); }, []);
 
@@ -65,12 +63,6 @@ export default function Cash() {
       ) : (
         <>
           <Card>
-            <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}>
-              <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={24} color={theme.text} />
-              </TouchableOpacity>
-              <Text style={[styles.title, { color: theme.text }]}>CAIXA</Text>
-            </View>
             <View style={styles.statusRow}>
               <View style={styles.statusDot} />
               <Text style={styles.statusText}>Caixa Aberto</Text>
@@ -147,15 +139,6 @@ const styles = StyleSheet.create({
   closedTitle: { fontSize: 24, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
   closedText: { fontSize: 16, textAlign: 'center', marginBottom: 24 },
   openButton: { minWidth: 200 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingBottom: 15,
-    paddingTop: 12,
-    gap: 15,
-  },
-  backBtn: { padding: 4 },
-  title: { flex: 1, fontSize: 20, fontWeight: '700'},
   statusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   statusDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#34C759', marginRight: 8 },
   statusText: { fontSize: 18, fontWeight: 'bold', color: '#34C759' },

@@ -1,7 +1,6 @@
 # 🚀 Guia de Instalação Local - Barbershop Manager
 
-## 📋 Pré-requisitos atualizados
-
+## 📋 Pré-requisitos
 
 Antes de começar, certifique-se de ter instalado:
 
@@ -39,7 +38,6 @@ cd backend
 
 # Criar ambiente virtual (recomendado)
 python -m venv venv
-py -3.11 -m venv venv311
 
 # Ativar ambiente virtual
 # Windows:
@@ -48,33 +46,8 @@ venv\Scripts\activate
 source venv/bin/activate
 
 # Instalar dependências
-python.exe -m pip install --upgrade pip
 pip install -r requirements.txt
-pip install psycopg_binary
-pip install psycopg 
-pip install pydantic_settings 
-pip install sqlalchemy 
-pip uninstall greenlet -y 
-pip install greenlet==3.0.3
-pip install uvicorn
-pip install fastapi
-pip install httpx
-pip install pydantic[email]
-pip install exponent_server_sdk
-pip install python-multipart
-
-
 ```
-
-# Add no inicio do arquivo database.py
-   import asyncio
-   import sys
-
-   # No Windows, força o uso do SelectorEventLoopPolicy
-   if sys.platform == 'win32':
-      asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-
 
 ### 2.2. Configurar NeonDB
 
@@ -161,8 +134,6 @@ EXPO_PUBLIC_BACKEND_URL=https://seu-backend.com
 ### 3.3. Rodar o App Mobile
 
 ```bash
-# Dependencias para as Notificações Push
-npx expo install expo-notifications expo-device expo-constants
 # Certifique-se de estar na pasta frontend
 npx expo start
 

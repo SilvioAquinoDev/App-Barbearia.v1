@@ -18,7 +18,7 @@ interface Product {
   is_active: boolean;
 }
 
-/*interface Appointment {
+interface Appointment {
   id: number;
   client_id: string;
   service_id: number;
@@ -26,25 +26,6 @@ interface Product {
   status: string;
   notes?: string;
   notification_sent: boolean;
-}*/
-
-interface Appointment {
-  id: number;
-  client_id?: string;        // Tornando opcional se pode ser string ou number
-  client_name?: string;       // NOVO: nome do cliente
-  client_phone?: string;      // NOVO: telefone do cliente
-  client_email?: string;      // NOVO: email do cliente (para fidelidade)
-  service_id: number;
-  service_name?: string;      // NOVO: nome do serviço
-  service_price?: number;     // NOVO: preço do serviço
-  service_duration?: number;  // NOVO: duração do serviço
-  scheduled_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';  // Tipando os status
-  notes?: string;
-  notification_sent?: boolean;
-  created_at?: string;        // NOVO: data de criação
-  updated_at?: string;        // NOVO: data de atualização
-  barber_id?: number;         // NOVO: ID do barbeiro
 }
 
 interface CashRegister {

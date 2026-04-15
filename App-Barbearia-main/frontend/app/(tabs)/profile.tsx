@@ -40,7 +40,7 @@ export default function Profile() {
         setBarbershop(res.data);
         setShopForm({ name: res.data.name || '', phone: res.data.phone || '', address: res.data.address || '' });
       }
-    } catch { }
+    } catch {}
   };
 
   const handleSaveShop = async () => {
@@ -75,7 +75,6 @@ export default function Profile() {
     if (barbershop.logo_url.startsWith('http')) return { uri: barbershop.logo_url };
     return { uri: `${api.defaults.baseURL || ''}${barbershop.logo_url}` };
   };
-
 
   const handleLogout = () => {
     const doLogout = async () => {
@@ -130,129 +129,79 @@ export default function Profile() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={styles.content}>
-      {/*<Card style={[styles.profileCard, { backgroundColor: theme.card }]}>
-        <View style={styles.shopHeader}>
-          <TouchableOpacity onPress={handleUploadLogo} style={styles.shopLogoContainer} data-testid="profile-upload-logo">
-            {getLogoSource() ? (
-              <Image source={getLogoSource()!} style={styles.shopLogo} />
-            ) : (
-              <View style={[styles.shopLogoPlaceholder, { backgroundColor: theme.primary + '18' }]}>
-                <Ionicons name="storefront" size={28} color={theme.primary} />
-              </View>
-            )}
-            <View style={[styles.editBadge, { backgroundColor: theme.primary }]}>
-              <Ionicons name="camera" size={10} color="#FFF" />
-            </View>
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.shopNameText, { color: theme.text }]}>{barbershop.name}</Text>
-            {barbershop.phone && (
-              <View style={styles.shopInfoItem}>
-                <Ionicons name="call-outline" size={14} color={theme.textMuted} />
-                <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]}>{barbershop.phone}</Text>
-              </View>
-            )}
-            {barbershop.address && (
-              <View style={styles.shopInfoItem}>
-                <Ionicons name="location-outline" size={14} color={theme.textMuted} />
-                <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]} numberOfLines={2}>{barbershop.address}</Text>
-              </View>
-            )}
+      <Card style={[styles.profileCard, { backgroundColor: theme.card }]}>
+        {user?.picture ? (
+          <Image source={{ uri: user.picture }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatarPlaceholder, { backgroundColor: theme.border }]}>
+            <Ionicons name="person" size={48} color={theme.textMuted} />
           </View>
+        )}
+        
+        <Text style={[styles.name, { color: theme.text }]}>{user?.name}</Text>
+        <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
+        
+        <View style={[styles.roleBadge, { backgroundColor: theme.primary }]}>
+          <Ionicons 
+            name={user?.role === 'barber' ? 'cut' : 'person'} 
+            size={16} 
+            color="#FFF" 
+          />
+          <Text style={styles.roleText}>
+            {user?.role === 'barber' ? 'Barbeiro' : 'Cliente'}
+          </Text>
         </View>
-        <TouchableOpacity
-          style={[styles.editShopBtn, { borderColor: theme.primary }]}
-          onPress={() => setShowEditShop(true)}
-          data-testid="edit-barbershop-btn"
-        >
-          <Ionicons name="create-outline" size={16} color={theme.primary} />
-          <Text style={[styles.editShopBtnText, { color: theme.primary }]}>Editar Dados</Text>
-        </TouchableOpacity>
-      </Card>*/}
+      </Card>
 
-      {/* Só renderiza o Card da barbearia se existir dados */}
-      {barbershop && (
-        <Card style={[styles.profileCard, { backgroundColor: theme.card }]}>
-          <View style={styles.shopHeader}>
-            <TouchableOpacity onPress={handleUploadLogo} style={styles.shopLogoContainer} data-testid="profile-upload-logo">
-              {getLogoSource() ? (
-                <Image source={getLogoSource()!} style={styles.shopLogo} />
-              ) : (
-                <View style={[styles.shopLogoPlaceholder, { backgroundColor: theme.primary + '18' }]}>
-                  <Ionicons name="storefront" size={28} color={theme.primary} />
-                </View>
-              )}
-              <View style={[styles.editBadge, { backgroundColor: theme.primary }]}>
-                <Ionicons name="camera" size={10} color="#FFF" />
-              </View>
-            </TouchableOpacity>
-            <View style={[styles.shopInfo, { flex: 1 }]}>
-              {/* Agora é seguro acessar barbershop.name porque verificamos acima */}
-              <Text style={[styles.shopNameText, { color: theme.text }]}>{barbershop.name}</Text>
-              {barbershop.phone && (
-                <View style={styles.shopInfoItem}>
-                  <Ionicons name="call-outline" size={20} color={theme.textMuted} />
-                  <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]}>{barbershop.phone}</Text>
-                </View>
-              )}
-              {barbershop.address && (
-                <View style={styles.shopInfoItem}>
-                  <Ionicons name="location-outline" size={20} color={theme.textMuted} />
-                  <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]} numberOfLines={2}>{barbershop.address}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[styles.editShopBtn, { borderColor: theme.primary }]}
-            onPress={() => setShowEditShop(true)}
-            data-testid="edit-barbershop-btn"
-          >
-            <Ionicons name="create-outline" size={16} color="#FFF" />
-            <Text style={[styles.editShopBtnText]}>Editar Dados</Text>
-          </TouchableOpacity>
-        </Card>
-      )}
-
-      {/* Barbershop Info Section 
+      {/* Barbershop Info Section */}
       {user?.role === 'barber' && barbershop && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Minha Barbearia</Text>
-          
+          <Card style={{ backgroundColor: theme.card }}>
+            <View style={styles.shopHeader}>
+              <TouchableOpacity onPress={handleUploadLogo} style={styles.shopLogoContainer} data-testid="profile-upload-logo">
+                {getLogoSource() ? (
+                  <Image source={getLogoSource()!} style={styles.shopLogo} />
+                ) : (
+                  <View style={[styles.shopLogoPlaceholder, { backgroundColor: theme.primary + '18' }]}>
+                    <Ionicons name="storefront" size={28} color={theme.primary} />
+                  </View>
+                )}
+                <View style={[styles.editBadge, { backgroundColor: theme.primary }]}>
+                  <Ionicons name="camera" size={10} color="#FFF" />
+                </View>
+              </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.shopNameText, { color: theme.text }]}>{barbershop.name}</Text>
+                {barbershop.phone && (
+                  <View style={styles.shopInfoItem}>
+                    <Ionicons name="call-outline" size={14} color={theme.textMuted} />
+                    <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]}>{barbershop.phone}</Text>
+                  </View>
+                )}
+                {barbershop.address && (
+                  <View style={styles.shopInfoItem}>
+                    <Ionicons name="location-outline" size={14} color={theme.textMuted} />
+                    <Text style={[styles.shopInfoValue, { color: theme.textSecondary }]} numberOfLines={2}>{barbershop.address}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.editShopBtn, { borderColor: theme.primary }]}
+              onPress={() => setShowEditShop(true)}
+              data-testid="edit-barbershop-btn"
+            >
+              <Ionicons name="create-outline" size={16} color={theme.primary} />
+              <Text style={[styles.editShopBtnText, { color: theme.primary }]}>Editar Dados</Text>
+            </TouchableOpacity>
+          </Card>
         </View>
-      )}*/}
+      )}
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Informações</Text>
-
-        <Card style={{ backgroundColor: theme.card }}>
-            <View style={styles.headerUser}>
-              {user?.picture ? (
-                <Image source={{ uri: user.picture }} style={styles.avatar} />
-              ) : (
-                <View style={[styles.avatarPlaceholder, { backgroundColor: theme.border }]}>
-                  <Ionicons name="person" size={48} color={theme.textMuted} />
-                </View>
-              )}
-              <View>
-                <Text style={[styles.name, { color: theme.text }]}>{user?.name}</Text>
-                <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
-                
-              </View>
-              <View style={[styles.roleBadge, { backgroundColor: theme.primary }]}>
-                  <Ionicons
-                    name={user?.role === 'barber' ? 'cut' : 'person'}
-                    size={25}
-                    color="#FFF"
-                  />
-                  <Text style={styles.roleText}>
-                    {user?.role === 'barber' ? 'Barbeiro' : 'Cliente'}
-                  </Text>
-                </View>
-            </View>
-
-          </Card>
-
+        
         <Card style={{ backgroundColor: theme.card }}>
           <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Meu Perfil', `Nome: ${user?.name}\nEmail: ${user?.email}\nRole: ${user?.role === 'barber' ? 'Barbeiro' : 'Cliente'}`)}>
             <View style={styles.menuItemLeft}>
@@ -284,7 +233,7 @@ export default function Profile() {
         </Card>
       </View>
 
-      {/*{user?.role === 'barber' && (
+      {user?.role === 'barber' && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Gerenciamento</Text>
           <Card style={{ backgroundColor: theme.card }}>
@@ -319,7 +268,7 @@ export default function Profile() {
             </TouchableOpacity>
           </Card>
         </View>
-      )}*/}
+      )}
 
       {user?.role !== 'barber' && (
         <View style={styles.section}>
@@ -414,7 +363,6 @@ export default function Profile() {
           </ScrollView>
         </View>
       </Modal>
-
     </ScrollView>
   );
 }
@@ -432,15 +380,15 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     marginBottom: 16,
   },
   avatarPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
@@ -460,19 +408,16 @@ const styles = StyleSheet.create({
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    height: 35,
-    marginLeft: 'auto',
     borderRadius: 20,
-    gap: 10,
+    gap: 6,
   },
   roleText: {
+    color: '#FFF',
+    fontSize: 14,
     fontWeight: '600',
-    fontSize: 15,
-    color: '#FFFFFF',
   },
   section: {
     marginTop: 24,
@@ -483,10 +428,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 12,
     paddingHorizontal: 4,
-  },
-  headerUser: {
-    flexDirection: 'row',
-    gap: 16,
   },
   menuItem: {
     flexDirection: 'row',
@@ -522,7 +463,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   shopHeader: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     marginBottom: 14,
@@ -531,14 +472,14 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   shopLogo: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   shopLogoPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -552,11 +493,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  shopInfo: {
-    alignItems: 'center',
-  },
   shopNameText: {
-    fontSize: 25,
+    fontSize: 18,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -567,24 +505,21 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   shopInfoValue: {
-    fontSize: 16,
+    fontSize: 13,
     flex: 1,
   },
   editShopBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 20,
     gap: 6,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderRadius: 10,
   },
   editShopBtnText: {
     fontWeight: '600',
     fontSize: 14,
-    color: '#FFFFFF',
   },
   modalContainer: {
     flex: 1,

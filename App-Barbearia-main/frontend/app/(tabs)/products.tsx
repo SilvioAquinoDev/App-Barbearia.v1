@@ -6,11 +6,9 @@ import { useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import api from '../../src/services/api';
-import { useRouter } from 'expo-router';
 
 export default function Products() {
   const { theme } = useTheme();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [products, setProducts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -168,17 +166,6 @@ export default function Products() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-
-      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={theme.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: theme.text }]}>Produtos</Text>
-        <TouchableOpacity onPress={openAdd} style={styles.addHeaderBtn} data-testid="add-promotion-btn">
-          <Ionicons name="add" size={34} color={theme.primary} />
-        </TouchableOpacity>
-      </View>
-
       <FlatList
         data={products}
         keyExtractor={(item) => item.id.toString()}
@@ -273,13 +260,13 @@ export default function Products() {
               </TouchableOpacity>
 
               <Text style={[styles.label, { color: theme.text }]}>Nome *</Text>
-              <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.name} onChangeText={v => setForm({ ...form, name: v })} placeholder="Nome do produto" placeholderTextColor={theme.textMuted} />
+              <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.name} onChangeText={v => setForm({...form, name: v})} placeholder="Nome do produto" placeholderTextColor={theme.textMuted} />
               <Text style={[styles.label, { color: theme.text }]}>Descricao</Text>
-              <TextInput style={[styles.input, styles.textArea, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.description} onChangeText={v => setForm({ ...form, description: v })} placeholder="Descricao" placeholderTextColor={theme.textMuted} multiline numberOfLines={3} />
+              <TextInput style={[styles.input, styles.textArea, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.description} onChangeText={v => setForm({...form, description: v})} placeholder="Descricao" placeholderTextColor={theme.textMuted} multiline numberOfLines={3} />
               <Text style={[styles.label, { color: theme.text }]}>Preco (R$) *</Text>
-              <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.price} onChangeText={v => setForm({ ...form, price: v })} placeholder="0.00" placeholderTextColor={theme.textMuted} keyboardType="decimal-pad" />
+              <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.price} onChangeText={v => setForm({...form, price: v})} placeholder="0.00" placeholderTextColor={theme.textMuted} keyboardType="decimal-pad" />
               <Text style={[styles.label, { color: theme.text }]}>Estoque</Text>
-              <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.stock} onChangeText={v => setForm({ ...form, stock: v })} placeholder="0" placeholderTextColor={theme.textMuted} keyboardType="number-pad" />
+              <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={form.stock} onChangeText={v => setForm({...form, stock: v})} placeholder="0" placeholderTextColor={theme.textMuted} keyboardType="number-pad" />
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
@@ -315,18 +302,7 @@ export default function Products() {
 }
 
 const styles = StyleSheet.create({
-
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: 22,
-    borderBottomWidth: 1
-  },
-  backBtn: { padding: 4 },
-  title: { flex: 1, fontSize: 20, fontWeight: '700', marginLeft: 12 },
-  addHeaderBtn: { padding: 4, marginRight: 20 },
   list: { padding: 16, paddingBottom: 40 },
   empty: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 16 },
