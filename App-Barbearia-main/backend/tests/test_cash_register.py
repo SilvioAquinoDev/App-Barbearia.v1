@@ -36,7 +36,7 @@ async def get_test_token():
 
 def test_cash_register_flow(token):
     """Test cash register open, product sale, current totals, close"""
-    BASE_URL = "https://barber-mgmt-5.preview.emergentagent.com"
+    BASE_URL = "https://gestao-app-1.preview.emergentagent.com"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"

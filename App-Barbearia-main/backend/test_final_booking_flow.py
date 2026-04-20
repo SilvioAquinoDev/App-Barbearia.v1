@@ -19,7 +19,7 @@ from models import User, UserSession, Service, BarberAvailability, Appointment
 from sqlalchemy import delete
 
 # Configuration
-BACKEND_URL = "https://barber-mgmt-5.preview.emergentagent.com/api"
+BACKEND_URL = "https://gestao-app-1.preview.emergentagent.com/api"
 TEST_BARBER_ID = "test_schedule_final"
 TEST_BARBER_EMAIL = "schedule_final@test.com"
 TEST_BARBER_NAME = "Final Test Barber"

@@ -7,6 +7,10 @@ from pathlib import Path
 import logging
 import asyncio
 
+# Load environment variables BEFORE importing routes (they read env at module level)
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
 from database import init_db, close_db
 from config import get_settings
 from routes import auth_routes, service_routes, product_routes, appointment_routes
@@ -14,11 +18,8 @@ from routes import cash_register_routes, service_history_routes, push_token_rout
 from routes import public_routes, schedule_routes, whatsapp_routes, product_sale_routes
 from routes import loyalty_routes, promotion_routes, report_routes, photo_routes
 from routes import barbershop_routes
+from routes import web_push_routes, evolution_routes
 from services.reminder_scheduler import reminder_scheduler_loop, send_appointment_reminders
-
-# Load environment variables
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
 
 settings = get_settings()
 
@@ -57,11 +58,33 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Middleware to fix redirect URLs from HTTP to HTTPS behind reverse proxy
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import RedirectResponse
+
+class HTTPSRedirectFixMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        if response.status_code in (307, 308) and 'location' in response.headers:
+            location = response.headers['location']
+            forwarded_proto = request.headers.get('x-forwarded-proto', '')
+            if forwarded_proto == 'https' and location.startswith('http://'):
+                response.headers['location'] = location.replace('http://', 'https://', 1)
+        return response
+
+app.add_middleware(HTTPSRedirectFixMiddleware)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["http://127.0.0.1:8081","http://localhost:3001","http://localhost:8081","http://10.0.0.179:8081","http://192.168.1.7:8081","http://10.0.0.179:3001","http://192.168.1.7:3001"],
+    allow_origins=["http://127.0.0.1:8081",
+    "http://localhost:3001",
+    "http://localhost:8081",
+    "http://10.0.0.170:8081",
+    "http://192.168.1.10:8081",
+    "http://10.0.0.170:3001",
+    "http://192.168.1.10:3001"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -89,6 +112,12 @@ app.include_router(clients_routes.router, prefix="/api")
 
 # Barbershop routes
 app.include_router(barbershop_routes.router, prefix="/api")
+
+# Web Push routes
+app.include_router(web_push_routes.router, prefix="/api")
+
+# Evolution API routes
+app.include_router(evolution_routes.router, prefix="/api")
 
 # Serve uploaded product images
 uploads_dir = ROOT_DIR / "uploads" / "products"
@@ -123,3 +152,21 @@ async def root():
         "docs": "/docs",
         "health": "/api/health"
     }
+
+# Serve web-client static files (SPA)
+WEB_CLIENT_DIR = ROOT_DIR.parent / "web-client" / "dist"
+if WEB_CLIENT_DIR.exists():
+    app.mount("/api/web/assets", StaticFiles(directory=str(WEB_CLIENT_DIR / "assets")), name="web-assets")
+
+    @app.get("/api/web/sw.js")
+    async def serve_sw():
+        from starlette.responses import FileResponse
+        return FileResponse(str(WEB_CLIENT_DIR / "sw.js"), media_type="application/javascript")
+
+    @app.get("/api/web/{full_path:path}")
+    async def serve_web_client(full_path: str = ""):
+        from starlette.responses import FileResponse
+        file_path = WEB_CLIENT_DIR / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(WEB_CLIENT_DIR / "index.html"))

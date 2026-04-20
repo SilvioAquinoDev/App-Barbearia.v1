@@ -5,7 +5,7 @@ Test new features iteration 3:
 3. Financial Reports - daily/weekly/monthly, top services, daily breakdown
 4. Service Photos - upload, list, delete
 
-Base URL: https://barber-mgmt-5.preview.emergentagent.com
+Base URL: https://gestao-app-1.preview.emergentagent.com
 Test user: test_barber@testing.com (created in iteration 1)
 """
 import pytest
@@ -17,7 +17,7 @@ import time
 
 sys.path.insert(0, '/app/backend')
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://barber-mgmt-5.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://gestao-app-1.preview.emergentagent.com')
 
 
 # ============ Helper: Get Test Token ============

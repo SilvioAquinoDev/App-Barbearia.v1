@@ -37,7 +37,7 @@ async def get_test_token():
 
 async def create_test_appointment(token):
     """Create a test appointment for testing"""
-    BASE_URL = "https://barber-mgmt-5.preview.emergentagent.com"
+    BASE_URL = "https://gestao-app-1.preview.emergentagent.com"
     
     # Create via public booking
     future_time = (datetime.utcnow() + timedelta(days=7, hours=14)).isoformat()
@@ -74,7 +74,7 @@ async def create_test_appointment(token):
 
 def test_appointment_actions(token, appointment_id):
     """Test appointment confirm, complete, cancel endpoints"""
-    BASE_URL = "https://barber-mgmt-5.preview.emergentagent.com"
+    BASE_URL = "https://gestao-app-1.preview.emergentagent.com"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
@@ -124,7 +124,7 @@ def test_appointment_actions(token, appointment_id):
 
 def test_cancel_appointment(token, appointment_id):
     """Test appointment cancel endpoint (separate since it's a destructive action)"""
-    BASE_URL = "https://barber-mgmt-5.preview.emergentagent.com"
+    BASE_URL = "https://gestao-app-1.preview.emergentagent.com"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
@@ -161,7 +161,7 @@ async def main():
         print(f"✅ Using test token: {token[:30]}...")
         
         # Get existing appointments
-        BASE_URL = "https://barber-mgmt-5.preview.emergentagent.com"
+        BASE_URL = "https://gestao-app-1.preview.emergentagent.com"
         headers = {"Authorization": f"Bearer {token}"}
         
         resp = requests.get(f"{BASE_URL}/api/appointments/", headers=headers)

@@ -15,24 +15,11 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="client")  # "barber" or "client"
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     birth_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    web_push_subscription: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Relationships
     appointments: Mapped[List["Appointment"]] = relationship("Appointment", back_populates="client", foreign_keys="Appointment.client_id")
-
-class Barbershop(Base):
-    """Barbershop entity for multi-tenant"""
-    __tablename__ = "barbershops"
-    
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    logo_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    owner_id: Mapped[str] = mapped_column(String(50), ForeignKey("users.user_id"), index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
 
 class UserSession(Base):
     """User session for authentication"""
@@ -200,8 +187,8 @@ class LoyaltyPoints(Base):
     __tablename__ = "loyalty_points"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    client_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     client_phone: Mapped[str] = mapped_column(String(30), index=True)
+    client_email: Mapped[Optional[str]] = mapped_column(String(255), index=True, nullable=True)
     client_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     points: Mapped[int] = mapped_column(Integer, default=0)
     total_earned: Mapped[int] = mapped_column(Integer, default=0)
@@ -215,7 +202,6 @@ class LoyaltyTransaction(Base):
     __tablename__ = "loyalty_transactions"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    client_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     client_phone: Mapped[str] = mapped_column(String(30), index=True)
     type: Mapped[str] = mapped_column(String(20))  # "earn" or "redeem"
     points: Mapped[int] = mapped_column(Integer)
@@ -237,6 +223,20 @@ class Promotion(Base):
     valid_until: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Barbershop(Base):
+    """Barbershop entity for SaaS multi-tenancy"""
+    __tablename__ = "barbershops"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    phone: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    logo_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    owner_id: Mapped[str] = mapped_column(String(50), ForeignKey("users.user_id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class ServicePhoto(Base):

@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 from database import get_db
 from models import Appointment, Service, BarberAvailability, User
-from notification_service import notify_new_appointment
+from notification_service import notify_appointment_status
 
 router = APIRouter(prefix="/public", tags=["public-booking"])
 
@@ -206,16 +206,15 @@ async def public_book_appointment(
     await db.commit()
     await db.refresh(appointment)
 
-    # Send notification in background
-    apt_data = {
-        "id": appointment.id,
-        "client_name": appointment.client_name,
-        "client_phone": appointment.client_phone or "",
-        "client_email": appointment.client_email or "",
-        "service_name": service.name,
-        "scheduled_time": scheduled.strftime("%d/%m/%Y %H:%M"),
-    }
-    background_tasks.add_task(notify_new_appointment, db, apt_data)
+    # Send notification in background (with its own session)
+    async def _notify_bg(apt_id: int):
+        from database import async_session_factory
+        try:
+            async with async_session_factory() as session:
+                await notify_appointment_status(session, apt_id, "created")
+        except Exception as e:
+            print(f"Notification error: {e}")
+    background_tasks.add_task(_notify_bg, appointment.id)
 
     return BookingConfirmation(
         id=appointment.id,

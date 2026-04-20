@@ -50,11 +50,12 @@ function getApiBaseUrl(): string {
   
   const backendUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
                      process.env.EXPO_PUBLIC_BACKEND_URL ||
-                     'https://barber-mgmt-5.preview.emergentagent.com';
+                     'https://gestao-app-1.preview.emergentagent.com';
   
   console.log('📡 Using API URL:', backendUrl);
   return `${backendUrl}/api`;
 }*/
+
 
 function getApiBaseUrl(): string {
   if (Platform.OS === 'web') {
@@ -71,7 +72,7 @@ function getApiBaseUrl(): string {
   // 3. BACKEND_URL do .env (produção)
   
   // Primeiro, verifica se tem URL local configurada no .env
-  const localApiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+  const localApiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL; //|| 'http://192.168.1.7:8001';
   if (localApiUrl) {
     console.log('📱 Mobile using LOCAL API URL:', localApiUrl);
     // Garante que não tenha barra no final
@@ -140,9 +141,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      (global as any).authToken = null;
-    }
+    // Don't clear authToken on 401 - let AuthContext handle auth state
+    // The previous behavior of clearing authToken on any 401 caused race conditions
     return Promise.reject(error);
   }
 );

@@ -1,137 +1,170 @@
-<analysis>**original_problem_statement**: The user requested a comprehensive barbershop management application. The latest requests are:
-1.  **Client Management (Mobile)**: A new screen in the mobile app to list all clients. The list should display , , , and . The agent should try to fetch this data from the Google login and prompt the user for any missing information (like phone and birth date) on their first login.
-2.  **Notification System Fix (Backend & Mobile)**:
-    *   Fix the WaSenderAPI integration, as the API key is reportedly not being saved correctly, preventing messages from being sent.
-    *   Fix the Expo push notification system, which is also not sending messages.
-    *   Ensure notifications (both WhatsApp and Push) are reliably sent for all key appointment events: , , , , and .
+<analysis>**original_problem_statement**: 
+The user requested a comprehensive barbershop management application. Recent core requirements include:
+1. **SaaS Architecture**: Barbers register their barbershop on first login, and clients continue logging in via Google on the web client.
+2. **Consolidated Mobile Tabs**: Combine Products, Schedule, Loyalty, and Reports into a single Gestão (Management) tab to simplify the UI.
+3. **Birthdays (Aniversariantes)**: Display clients with birthdays in the current month on the dashboard, with a direct  WhatsApp link to send them a discount coupon.
+4. **Notification Overhaul (Current)**: 
+   - Web Push Notifications for the web-client on appointment status changes (confirmed, cancelled, completed).
+   - Expo Push Notifications for the mobile app (for new and cancelled appointments).
+   - WhatsApp integration via **Evolution API** (using Pairing Code) to send status updates and 1-hour reminders to clients.
 
-**User's preferred language**: Portuguese (Português). The next agent MUST respond in Portuguese.
+**User's preferred language**: Portuguese (Português). You MUST INSTRUCT the next agent to respond in the user's preferred language only.
 
-**what currently exists?**
-A full-stack application with a FastAPI/PostgreSQL backend, a React Native mobile app (), and a React web app (). The last session involved a significant backend refactor to address notification issues and add client management features.
+**what currently exists?** 
+A full-stack application with a FastAPI/PostgreSQL backend, an Expo React Native mobile app, and a Vite React web app. 
+- The SaaS architecture (Barbershop model) is fully implemented. 
+- Mobile tabs are successfully consolidated into a Gestão tab.
+- The web and mobile dashboards correctly display barbershop info and Birthdays of the month.
+- A major notification system overhaul is currently underway. The backend now has  installed and VAPID keys generated. The  was rewritten to handle Web Push, Expo Push, and Evolution API. Frontend files (, , ) were just created.
 
--   **Backend**: The  was completely refactored to create a unified system for sending both Expo Push and WaSenderAPI WhatsApp messages. New specific functions like , , etc., were created. Routes in  and  were updated to use this new service via . A new  was created to list and update client data. The  model was updated to include a  field.
--   **Frontend (Mobile)**: The Products page now supports image uploads. The WaSenderAPI settings page exists but requires updates to align with the backend fixes. The new Clients screen has not been created yet.
--   **Frontend (Web)**: Features a complete dark mode, a phone-request popup on the dashboard, and automatic fetching of history/loyalty data for logged-in users based on their email and phone.
-
-**Last working item**:
--   **Last item agent was working**: A large, multi-part task to fix the entire notification system (Push & WhatsApp) and add client management features. The agent focused on a major backend refactoring to create a robust and centralized notification service and prepare the endpoints for the new client management screen.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N (Agent was in the middle of implementation when the session ended).
--   **Which testing method agent to use?**: Backend testing agent to verify all notification-related endpoints. Manual  commands will also be necessary to test the flow with a valid session token. Frontend testing will require the  for the new mobile screens.
--   **User Testing Done**: N
+**Last working item**: 
+    - **Last item agent was working**: Integrating the new 3-channel notification system: Web Push (Service Worker + VAPID), Expo Push, and Evolution API (WhatsApp with pairing code). The agent was actively updating  to request Web Push subscription permissions and register them with the backend.
+    - **Status**: IN PROGRESS
+    - **Agent Testing Done**: N
+    - **Which testing method agent to use?**: backend testing agent to verify  and  endpoints, and manual testing (screenshots/curl) for frontend  registration and the Evolution API settings screen in the mobile app.
+    - **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Complete Client Management & Notification System Fixes (P0)
--   **Issue 2**: Mobile App Login on Physical Device (P1)
-
-**Issues Detail**:
--   **Issue 1: Complete Client Management & Notification System Fixes (P0)**
-    -   **Description**: This is a large, multi-part feature request from the user. The backend work is partially complete but untested. The frontend work has not started. The core goal is to have a working client list on mobile and a fully functional notification system for all appointment events.
-    -   **Attempted fixes**: The agent has performed a significant backend refactor:
-        1.  Created  for client CRUD.
-        2.  Added  to the  model.
-        3.  Overhauled  to handle both Push and WhatsApp notifications for different events.
-        4.  Updated  and  to trigger these new notification functions.
-        5.  Fixed the logic in  to correctly save the .
-    -   **Next debug checklist**:
-        1.  **Backend Verification**: Thoroughly test the backend changes. Create a test barber user, set the WaSenderAPI PAT, and confirm it saves to the DB. Create an appointment and verify that both  and  are triggered correctly.
-        2.  **Mobile App - Clients Screen**: Create a new screen file (e.g., ). Fetch data from the new  endpoint. Display the clients in a list with their , , , and .
-        3.  **Mobile App - Add Client Screen to Layout**: Add the new Clients screen to the tab navigator in .
-        4.  **Web App - Data Collection Popup**: Implement a popup on the web client's dashboard () that shows on first login if the user's  or  is missing, prompting them to enter it.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will fulfill two core user requests: providing barbers with a CRM-like feature to manage their clients and fixing the broken but critical notification system.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: Y (Notification issues have been mentioned before).
-    -   **Should Test frontend/backend/both after fix?**: Both.
-
--   **Issue 2: Mobile App Login on Physical Device (P1)**
-    -   **Description**: This is a recurring environmental issue where the user cannot connect the mobile app from a physical device to the local development server. A Configurar Servidor screen was created to solve this, but the user has not been guided on how to use it.
-    -   **Next debug checklist**: The agent must provide clear, step-by-step instructions to the user on how to use the Configurar Servidor screen to input their computer's local network IP address.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is critical for enabling the user to test the mobile app on their own device.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Frontend (Manual user verification).
+  - **Issue 1**: Complete Web Push, Expo Push, and Evolution API Integration (P0)
+     - **Attempted fixes**: Created VAPID keys, installed , added  to User schema, created  and . Rewrote  and . Added  and .
+     - **Next debug checklist**: 
+        1. Rebuild the web-client (yarn run v1.22.22
+$ vite build
+vite v5.4.21 building for production...
+transforming...
+✓ 935 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.42 kB │ gzip:  0.29 kB
+dist/assets/index-qFPZcTq_.css   27.36 kB │ gzip:  5.23 kB
+dist/assets/index-HkzXmsbI.js   268.60 kB │ gzip: 85.49 kB
+✓ built in 2.16s
+Done in 2.49s.) to ensure  is correctly served to .
+        2. Verify if the Web Push permission popup appears on the web-client Dashboard and saves the token to the backend.
+        3. Verify the  mobile screen logic to ensure barbers can input pairing codes. 
+        4. Test the 1-hour background reminder scheduler.
+     - **Why fix this issue and what will be achieved with the fix?**: Fulfills the user's explicit request for multi-channel notifications and replaces the broken WaSenderAPI with Evolution API.
+     - **Status**: IN PROGRESS
+     - **Is recurring issue?**: Y (Notification issues have been iterated on multiple times).
+     - **Should Test frontend/backend/both after fix?**: Both.
+  - **Issue 2**: Mobile App Login on Physical Device (P1)
+     - **Attempted fixes**: A Configurar Servidor screen exists, but the user hasn't successfully used it for local testing.
+     - **Next debug checklist**: Provide clear, step-by-step instructions to the user on how to use it.
+     - **Status**: USER VERIFICATION PENDING
+     - **Is recurring issue?**: Y
+     - **Should Test frontend/backend/both after fix?**: Frontend (User manual verification).
 
 **In progress Task List**:
--   **Task 1: Backend Refactor for Notifications and Clients**
-    -   **Where to resume**: The backend code has been written but not fully tested end-to-end. The next step is to run  commands and potentially use the  to validate all new and modified endpoints (, , and all appointment actions).
-    -   **What will be achieved with this?**: A stable backend foundation for the new client features and a working notification system.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Backend.
-    -   **Blocked on something**: No.
+  - **Task 1**: Evolution API Frontend Integration
+     - **Where to resume**:  was created. Ensure it is accessible from the Gestão tab and properly communicates with the backend to generate/validate the pairing code.
+     - **What will be achieved with this?**: Barbers can link their WhatsApp using a pairing code instead of a QR code.
+     - **Status**: IN PROGRESS
+     - **Should Test frontend/backend/both after fix?**: Both
+     - **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   **(P1) Implement Online Booking with Pix Payment**: This was a high-priority item. It requires integrating a payment gateway that supports Pix, which must be done via .
--   **Future Tasks**:
-    -   Implement SaaS Architecture: Execute the plan laid out in .
-    -   Enhance Financial Reports: Add more filters and visualizations.
-    -   Deprioritized Bug Fixes: Re-evaluate fixing the  and  buttons.
+    Upcoming Tasks:
+    - (P1) Implement Online Booking with Pix Payment (requires ).
+    Future Tasks:
+    - (P2) Enhance Financial Reports (Add metrics like monthly revenue, average ticket, top services).
+    - (P2) Fix/verify 'Cancel Appointment' and 'Logout' buttons.
 
 **Completed work in this session**
--   **Web Client Dark Mode**: Fully implemented and tested across all pages.
--   **Product Image Upload (Mobile)**: Added functionality for barbers to upload an image for each product via the mobile app.
--   **Client Phone Number Popup (Web)**: Implemented a modal on the web client dashboard to request the user's phone number if it's not already in their profile.
--   **Email-based History & Loyalty (Web)**: The History and Loyalty pages now automatically fetch data for the logged-in user, using their email and phone from their profile.
--   **WaSenderAPI & Client Management Backend Prep**: Performed a major backend refactor to prepare for the user's latest requests, including creating new routes, updating models, and overhauling the notification service.
+- Fixed critical syntax error in  (DONE)
+- Created  screen on mobile (DONE)
+- Implemented SaaS Architecture (Barbershop creation/linking) (DONE)
+- Combined Mobile Tabs into a single Gestão tab (DONE)
+- Fixed web/mobile dashboard race conditions and  crash (DONE)
+- Added Aniversariantes do mês (Birthdays) to the dashboard with  links (DONE)
+- Fixed Mixed Content (HTTP to HTTPS) redirect bugs causing API failures (DONE)
+
+**Earlier issues found/mentioned but not fixed**
+   - None outside of the pending list.
+
+**Known issue recurrence from previous fork**
+  - Issue recurrence in previous fork: WhatsApp API integration.
+  - Recurrence count: 3 (Switched from WaSenderAPI to Evolution API in this session).
+  - Status: IN PROGRESS
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend**: FastAPI  for asynchronous notifications, SQLAlchemy model and schema updates, serving static files for uploads.
--   **Frontend (Mobile)**: Expo, React Native, .
--   **Frontend (Web)**: React, React Context API, CSS Variables.
+- Backend: FastAPI, PostgreSQL (NeonDB),  (VAPID), BackgroundTasks.
+- Frontend (Mobile): Expo React Native, .
+- Frontend (Web): React, Vite, Service Workers (Web Push API).
 
 **key DB schema**
--   **users**: added 
--   **whatsapp_settings**: , ,  are now used.
--   **appointments**:  field is now actively used.
+  - barbershops: {id, name, phone, address, logo_url, owner_id}
+  - users: added {web_push_subscription}
+
+**changes in tech stack**
+  - Added  for Web Push notifications.
+  - Migrating from WaSenderAPI to Self-Hosted Evolution API (v2) for WhatsApp.
 
 **All files of reference**
--   : The newly refactored central service for all notifications.
--   : The new route for managing clients.
--   : Contains the triggers for all appointment-related notifications.
--   : Needs to be modified to add the new Clients tab.
--   : Contains the logic for the phone/birth date request popup.
+  -  (Core logic for notifications)
+  -  (Web Push service worker)
+  -  (Web Push helper)
+  -  (Evolution API UI)
+  -  (Cron job for 1-hr reminders)
+
+**Areas that need refactoring**: 
+  -  was heavily modified and handles three distinct APIs. It might need splitting into , , and  if it grows further.
+
+**key api endpoints**
+  - 
+  - 
+  - 
+  - 
 
 **Critical Info for New Agent**
--   **Your immediate priority is to finish the multi-part task**: Client Management screen and Notification Fixes.
--   **Start with the Frontend**: The backend has undergone a major refactor. Your next steps should focus on implementing the frontend parts of the request: the new Clients screen in the mobile app and the data collection popup in the web app.
--   **Test Thoroughly**: After implementing the frontend, you must test the entire end-to-end flow. This includes creating a user, saving the WaSenderAPI key, seeing the popup, creating an appointment, and verifying that both a push notification and a WhatsApp message are sent.
--   **Guide the User**: Do not forget to proactively guide the user on how to use the Configurar Servidor screen on their mobile device to resolve their long-standing local testing issue. This is a blocker for them.
+- You must rebuild the Vite web-client (yarn run v1.22.22
+$ vite build
+vite v5.4.21 building for production...
+transforming...
+✓ 935 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.42 kB │ gzip:  0.29 kB
+dist/assets/index-qFPZcTq_.css   27.36 kB │ gzip:  5.23 kB
+dist/assets/index-HkzXmsbI.js   268.60 kB │ gzip: 85.49 kB
+✓ built in 1.77s
+Done in 2.02s.) because  was just added to the  folder and the dashboard logic was modified. The web-client won't serve the service worker correctly until built and served via Nginx.
+- Evolution API is a 3rd-party self-hosted service. You must ensure the backend safely handles timeouts or missing API configurations so the app doesn't crash if the user hasn't fully set up their Evolution instance.
+- VAPID keys are already generated and placed in the backend .
 
 **documents and test reports created in this job**
--   
--   
--   
--    (updated multiple times)
+  - /app/test_reports/iteration_9.json
+  - /app/test_reports/iteration_10.json
+  - /app/memory/PRD.md (Updated extensively)
 
-**Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Requested a new Clients screen on mobile and fixes for both WhatsApp (WaSenderAPI key not saving) and Expo push notifications for all appointment events. (IN PROGRESS)
-2.  **User**: Requested that the web client automatically populate the email field during booking for logged-in users and use that email to automatically fetch appointment history and loyalty data. (DONE)
-3.  **User**: Provided details for the WaSenderAPI integration, including adding an API key field in the mobile app and showing a QR code. (IN PROGRESS)
-4.  **User**: Requested two features: a popup to collect a client's phone number on first login and the integration of WaSenderAPI for WhatsApp messages. (DONE/IN PROGRESS)
-5.  **User**: Switched priority to adding image upload functionality to products in the mobile app. (DONE)
-6.  **User**: Requested WhatsApp QR code integration. (IN PROGRESS - as part of the notification fix)
+**Last 10 User Messages and any pending HUMAN messages** 
+ 1. User: Confirmed priority order and scope for previous web popup and clients screen. (DONE)
+ 2. User: Requested Aniversariantes do mês (Birthdays), SaaS architecture (Barbershop model), mobile profile updates, and consolidated Gestão tab. (DONE)
+ 3. User: Chose Gestão as the name for the consolidated tab and confirmed SaaS flow rules. (DONE)
+ 4. User: Notified that the Gestão button is not showing on the mobile app. (DONE - Fixed Expo Web notifications crash).
+ 5. User: Notified that birthdays were not showing on the mobile dashboard. (DONE - Fixed Mixed Content HTTP/HTTPS block).
+ 6. User: Asked for a step-by-step guide to configure Expo push notifications. (DONE - Agent provided).
+ 7. User: Requested Web Push on web-client (status changes), Expo Push on mobile (new/cancel), and Evolution API with Pairing Code for WhatsApp (status changes + 1 hour reminders). (IN PROGRESS)
+ 8. User: Confirmed they don't have Evolution API configured and asked for help configuring/generating it. (IN PROGRESS)
 
 **Project Health Check:**
--   **Broken**: The notification system (both Push and WhatsApp) is in a partially-refactored but untested state. It is presumed broken until fully tested.
--   **Mocked**: No longer mocked. The system is now being integrated with the live .
--   **Pending Verification**: The Server Configuration screen in the mobile app still needs to be tested by the user.
+- Broken: None known, but the newly injected notification code is untested.
+- Mocked: Evolution API endpoints might need mocking or careful error handling if the user hasn't deployed an instance yet.
 
-**3rd Party Integrations**
--   **WaSenderAPI**: Actively being integrated for WhatsApp messaging. Requires a User API Key (Personal Access Token).
--   **Expo Push Notifications**: Integrated but needs to be fixed and tested.
--   **NeonDB (PostgreSQL)**: Active, requires User API Key.
--   **Emergent Google Auth**: Active, uses Emergent infrastructure.
+**3rd Party Integrations** 
+  • NeonDB (PostgreSQL) — requires User API Key
+  • Emergent Google Auth — uses Emergent infrastructure
+  • Expo Push Notifications — requires User Expo config
+  • Evolution API (WhatsApp) — newly added, requires User instance/API key.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES, the agent ran backend tests after each major feature implementation in this session.
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None.
--   **Known regressions**: The entire notification system's functionality is unknown after the major refactor and must be considered non-functional until proven otherwise.
+  - Testing agent used after significant changes: YES (Iterations 9 & 10 passed 100%).
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None
+  - Known regressions: None, but the notification system is in an untested mid-implementation state.
 
 **What agent forgot to execute**
--   The agent has consistently forgotten to guide the user on how to use the Configurar Servidor screen in the mobile app, which is a blocker for the user's own testing. This must be addressed.
--   The frontend implementation for the latest user request (Clients screen, data collection popup) has not been started.</analysis>
+- The agent hasn't fully guided the user on how to set up the *Self-hosted* Evolution API instance (Docker, EasyPanel, etc.), though the backend endpoints are written. The user stated Ainda nao tenho, me ajude a configurar. You will need to provide them instructions on hosting it.
+- The web-client was not rebuilt after adding  and .</analysis>

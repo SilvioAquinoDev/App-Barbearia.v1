@@ -8,50 +8,20 @@ from database import get_db
 from auth import get_current_user, get_current_barber
 from models import Appointment, PushToken, User, Service
 from schemas import AppointmentCreate, AppointmentUpdate, AppointmentResponse
-from notification_service import notify_new_appointment, notify_appointment_confirmed, notify_appointment_cancelled, notify_appointment_completed
+from notification_service import notify_appointment_status
 from routes.loyalty_routes import award_loyalty_points
 
 router = APIRouter(prefix="/appointments", tags=["appointments"])
 
-async def send_appointment_notifications(
-    appointment_id: int,
-    db: AsyncSession,
-    event_type: str = "new_booking",
-):
-    """Background task to send push + WhatsApp notifications"""
+
+async def _send_notifications_bg(appointment_id: int, action: str):
+    """Background task wrapper for notifications - creates its own DB session"""
+    from database import async_session_factory
     try:
-        appt_result = await db.execute(
-            select(Appointment, Service.name, Service.price).join(
-                Service, Appointment.service_id == Service.id
-            ).where(Appointment.id == appointment_id)
-        )
-        row = appt_result.first()
-        if not row:
-            return
-        appointment, service_name, service_price = row
-
-        apt_data = {
-            "id": appointment.id,
-            "client_name": appointment.client_name or "Cliente",
-            "client_phone": appointment.client_phone or "",
-            "client_email": appointment.client_email or "",
-            "service_name": service_name,
-            "scheduled_time": appointment.scheduled_time.strftime("%d/%m/%Y %H:%M"),
-        }
-
-        if event_type == "new_booking":
-            await notify_new_appointment(db, apt_data)
-        elif event_type == "confirmed":
-            await notify_appointment_confirmed(db, apt_data)
-        elif event_type == "cancelled":
-            await notify_appointment_cancelled(db, apt_data)
-        elif event_type == "completed":
-            await notify_appointment_completed(db, apt_data)
-
-        appointment.notification_sent = True
-        await db.commit()
+        async with async_session_factory() as db:
+            await notify_appointment_status(db, appointment_id, action)
     except Exception as e:
-        print(f"Error sending notifications: {e}")
+        print(f"Notification error: {e}")
 
 @router.post("/", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
 async def create_appointment(
@@ -76,9 +46,9 @@ async def create_appointment(
     
     # Send notification in background
     background_tasks.add_task(
-        send_appointment_notifications,
+        _send_notifications_bg,
         appointment.id,
-        db
+        "created"
     )
     
     return appointment
@@ -215,7 +185,7 @@ async def confirm_appointment(
     
     # Send Push + WhatsApp notification in background
     background_tasks.add_task(
-        send_appointment_notifications, appointment.id, db, "confirmed"
+        _send_notifications_bg, appointment.id, "confirmed"
     )
     
     return {"message": "Appointment confirmed successfully"}
@@ -247,7 +217,7 @@ async def cancel_appointment(
     await db.commit()
     
     background_tasks.add_task(
-        send_appointment_notifications, appointment.id, db, "cancelled"
+        _send_notifications_bg, appointment.id, "cancelled"
     )
     
     return {"message": "Appointment cancelled successfully"}
@@ -289,7 +259,7 @@ async def complete_appointment(
             print(f"[Loyalty] Erro ao dar pontos: {e}")
     
     background_tasks.add_task(
-        send_appointment_notifications, appointment.id, db, "completed"
+        _send_notifications_bg, appointment.id, "completed"
     )
     
     return {"message": "Appointment completed successfully"}

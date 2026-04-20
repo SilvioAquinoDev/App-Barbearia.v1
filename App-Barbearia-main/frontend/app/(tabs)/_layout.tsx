@@ -68,7 +68,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="services"
         options={{
-          title: 'Serviços',
+          title: 'Servicos',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cut" size={size} color={color} />
           ),
@@ -102,12 +102,13 @@ export default function TabsLayout() {
         }}
       />
       {/* Hidden tabs - accessed via Management page */}
-      <Tabs.Screen name="cash" options={{title: 'Gestão', href: null }} />
-      <Tabs.Screen name="products" options={{title: 'Gestão', href: null }} />
-      <Tabs.Screen name="schedule" options={{title: 'Gestão', href: null }} />
-      <Tabs.Screen name="loyalty" options={{title: 'Gestão', href: null }} />
-      <Tabs.Screen name="reports" options={{title: 'Gestão', href: null }} />
+      <Tabs.Screen name="cash" options={{ href: null }} />
+      <Tabs.Screen name="products" options={{ href: null }} />
+      <Tabs.Screen name="schedule" options={{ href: null }} />
+      <Tabs.Screen name="loyalty" options={{ href: null }} />
+      <Tabs.Screen name="reports" options={{ href: null }} />
       <Tabs.Screen name="promotions-manage" options={{title: 'Gestão', href: null }} />
+      <Tabs.Screen name="edit-client" options={{ href: null }} />
     </Tabs>
   );
 }

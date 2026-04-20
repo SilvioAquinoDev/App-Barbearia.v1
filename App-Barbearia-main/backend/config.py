@@ -13,6 +13,15 @@ class Settings(BaseSettings):
     # Expo Push Notifications
     expo_access_token: str = ""
     
+    # Web Push (VAPID)
+    vapid_private_key: str = ""
+    vapid_public_key: str = ""
+    vapid_mailto: str = "mailto:admin@barbershop.com"
+    
+    # Evolution API
+    evolution_api_url: str = ""
+    evolution_api_key: str = ""
+    
     # App settings
     app_name: str = "Barbershop Manager"
     debug: bool = True

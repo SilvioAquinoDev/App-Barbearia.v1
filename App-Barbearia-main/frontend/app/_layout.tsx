@@ -4,7 +4,6 @@ import { AuthProvider } from '../src/contexts/AuthContext';
 import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { StatusBar } from 'expo-status-bar';
 import { initApiUrl } from '../src/services/api';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function InnerLayout() {
   const { theme } = useTheme();
@@ -14,7 +13,7 @@ function InnerLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider>
+    <>
       <StatusBar style={theme.statusBarStyle} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
         <Stack.Screen name="index" />
@@ -24,10 +23,12 @@ function InnerLayout() {
         <Stack.Screen name="booking" />
         <Stack.Screen name="whatsapp-settings" />
         <Stack.Screen name="server-config" />
-        {/*<Stack.Screen name="promotions-manage" />*/}
+        <Stack.Screen name="promotions-manage" />
         <Stack.Screen name="service-photos" />
+        <Stack.Screen name="barbershop-setup" />
+        <Stack.Screen name="evolution-settings" />
       </Stack>
-    </SafeAreaProvider>
+    </>
   );
 }
 
