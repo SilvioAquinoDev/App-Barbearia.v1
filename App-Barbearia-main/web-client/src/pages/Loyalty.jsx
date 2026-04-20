@@ -1,4 +1,4 @@
-import {React, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import { useAuth } from '../contexts/AuthContext';
@@ -362,7 +362,6 @@ export default function Loyalty() {
     </div>
   );
 }
-
 
 
 

@@ -145,3 +145,86 @@ async def list_clients(
     # Sort by name
     clients.sort(key=lambda c: c.name.lower())
     return clients
+
+
+
+# Adicione ao final do seu arquivo clients.py (backend)
+
+class UpdateClientRequest(BaseModel):
+    name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    birth_date: Optional[date] = None
+
+
+@router.put("/{client_id}")
+async def update_client(
+    client_id: str,
+    client_data: UpdateClientRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_barber),
+):
+    """Update a registered client (user with role='client')"""
+    # Buscar o usuário pelo ID
+    result = await db.execute(
+        select(User).where(User.user_id == client_id, User.role == "client")
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    # Atualizar os dados
+    user.name = client_data.name
+    user.email = client_data.email
+    user.phone = client_data.phone
+    user.birth_date = client_data.birth_date
+    
+    await db.commit()
+    await db.refresh(user)
+    
+    return {
+        "id": user.user_id,
+        "name": user.name,
+        "email": user.email,
+        "phone": user.phone,
+        "birth_date": user.birth_date.isoformat() if user.birth_date else None,
+        "message": "Cliente atualizado com sucesso"
+    }
+
+
+@router.get("/{client_id}")
+async def get_client(
+    client_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_barber),
+):
+    """Get a specific client by ID"""
+    result = await db.execute(
+        select(User).where(User.user_id == client_id, User.role == "client")
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    # Get appointment stats
+    stats = await db.execute(
+        select(func.count(Appointment.id), func.max(Appointment.scheduled_time)).where(
+            (Appointment.client_id == user.user_id) | (Appointment.client_email == user.email)
+        )
+    )
+    row = stats.first()
+    total = row[0] if row else 0
+    last = row[1].strftime("%d/%m/%Y %H:%M") if row and row[1] else None
+    
+    return {
+        "id": user.user_id,
+        "name": user.name,
+        "email": user.email,
+        "phone": user.phone,
+        "birth_date": user.birth_date.isoformat() if user.birth_date else None,
+        "total_appointments": total,
+        "last_appointment": last,
+        "source": "registered",
+    }

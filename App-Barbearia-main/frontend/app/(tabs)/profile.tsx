@@ -58,6 +58,81 @@ export default function Profile() {
 
   const handleUploadLogo = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissao', 'Precisamos de acesso a galeria.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    try {
+      const formData = new FormData();
+      const asset = result.assets[0];
+
+      // Para web, precisamos buscar o blob
+      if (Platform.OS === 'web') {
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
+
+        // Determinar o tipo MIME correto
+        let mimeType = 'image/jpeg';
+        if (asset.uri.includes('.png')) mimeType = 'image/png';
+        if (asset.uri.includes('.gif')) mimeType = 'image/gif';
+
+        const file = new File([blob], 'logo.jpg', { type: mimeType });
+        formData.append('file', file);
+      } else {
+        // Para mobile (iOS/Android)
+        const fileType = asset.uri.split('.').pop() || 'jpg';
+        const mimeType = fileType === 'jpg' || fileType === 'jpeg' ? 'image/jpeg' : 'image/png';
+
+        formData.append('file', {
+          uri: asset.uri,
+          name: `logo.${fileType}`,
+          type: mimeType,
+        } as any);
+      }
+
+      // Log para debug
+      console.log('Enviando arquivo:', formData);
+
+      const response = await api.post('/barbershop/logo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        // Importante: não transformar o FormData
+        transformRequest: (data) => data,
+      });
+
+      console.log('Resposta do upload:', response.data);
+      await loadBarbershop();
+      Alert.alert('Sucesso', 'Logo atualizada!');
+    } catch (error: any) {
+      console.error('Erro detalhado do upload:', error);
+
+      if (error.response) {
+        console.log('Dados do erro:', error.response.data);
+        console.log('Status:', error.response.status);
+        Alert.alert('Erro', error.response.data?.detail || `Erro ${error.response.status}: Verifique o formato da imagem`);
+      } else if (error.request) {
+        console.log('Sem resposta do servidor');
+        Alert.alert('Erro', 'Servidor não respondeu. Verifique sua conexão.');
+      } else {
+        Alert.alert('Erro', 'Falha ao enviar logo: ' + error.message);
+      }
+    }
+  };
+
+
+  /*const handleUploadLogo = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') { Alert.alert('Permissao', 'Precisamos de acesso a galeria.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     if (result.canceled || !result.assets[0]) return;
@@ -74,6 +149,32 @@ export default function Profile() {
     if (!barbershop?.logo_url) return null;
     if (barbershop.logo_url.startsWith('http')) return { uri: barbershop.logo_url };
     return { uri: `${api.defaults.baseURL || ''}${barbershop.logo_url}` };
+  };*/
+
+  const getLogoSource = () => {
+    if (!barbershop?.logo_url) return null;
+
+    // Se já for uma URL completa (http/https)
+    if (barbershop.logo_url.startsWith('http')) {
+      return { uri: barbershop.logo_url };
+    }
+
+    // Para URLs relativas, construir a URL completa
+    // Remove a barra inicial se existir para não duplicar
+    let logoPath = barbershop.logo_url;
+    if (logoPath.startsWith('/')) {
+      logoPath = logoPath.substring(1);
+    }
+
+    // Base URL da API (sem o /api no final)
+    const baseURL = api.defaults.baseURL || 'http://localhost:8001';
+    // Remove /api do baseURL se existir
+    const apiBaseURL = baseURL.replace(/\/api$/, '');
+
+    const fullUrl = `${apiBaseURL}/${logoPath}`;
+    console.log('Logo URL:', fullUrl); // Para debug
+
+    return { uri: fullUrl };
   };
 
   const handleLogout = () => {
@@ -128,8 +229,8 @@ export default function Profile() {
   };
 
   return (
-    <ScrollView 
-      style={[styles.container, { backgroundColor: theme.background }]} 
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >

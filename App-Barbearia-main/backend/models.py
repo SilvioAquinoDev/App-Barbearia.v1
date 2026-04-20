@@ -188,6 +188,7 @@ class LoyaltyPoints(Base):
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     client_phone: Mapped[str] = mapped_column(String(30), index=True)
+    client_email: Mapped[Optional[str]] = mapped_column(String(255), index=True, nullable=True)
     client_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     points: Mapped[int] = mapped_column(Integer, default=0)
     total_earned: Mapped[int] = mapped_column(Integer, default=0)

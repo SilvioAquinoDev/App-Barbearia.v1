@@ -138,17 +138,19 @@ export default function Dashboard() {
   };
 
   const handleSaveProfile = async () => {
-    const phone = phoneInput.trim();
+    const cleanPhone = phoneInput.replace(/\D/g, ''); // Remove tudo que não é número
     const birthDate = birthDateInput.trim();
 
-    if (!phone || phone.length < 8) {
-      alert('Informe um telefone valido com pelo menos 8 digitos');
+    if (!phone || phone.length < 10) {
+      alert('Informe um telefone valido com pelo menos 10 digitos');
       return;
     }
 
+    const fullPhone = `55${cleanPhone}`; // Adiciona código do país (Brasil)
+
     setSavingProfile(true);
     try {
-      const payload = { phone };
+      const payload = { phone: fullPhone };
       if (birthDate) payload.birth_date = birthDate;
       const res = await api.put('/auth/update-phone', payload);
       setUser(res.data);
@@ -200,16 +202,44 @@ export default function Dashboard() {
             {!user?.phone && (
               <>
                 <label className="input-label" htmlFor="phone-input">Telefone / WhatsApp</label>
-                <input
-                  id="phone-input"
-                  type="tel"
-                  className="phone-input"
-                  placeholder="(00) 00000-0000"
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
-                  data-testid="phone-input"
-                  autoFocus
-                />
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{
+                    background: '#f0f0f0',
+                    padding: '12px',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    fontSize: '16px',
+                  }}>
+                    +55
+                  </span>
+                  <input
+                    id="phone-input"
+                    type="tel"
+                    className="phone-input"
+                    placeholder="55 (00) 00000-0000"
+                    value={phoneInput}
+                    //onChange={(e) => setPhoneInput(e.target.value)}
+                    onChange={(e) => {
+                      // Remove tudo que não é número
+                      let value = e.target.value.replace(/\D/g, '');
+                      // Limita a 11 dígitos (DDD + número)
+                      if (value.length > 11) value = value.slice(0, 11);
+
+                      // Aplica máscara (XX) XXXXX-XXXX
+                      if (value.length <= 2) {
+                        value = value.replace(/(\d{0,2})/, '($1');
+                      } else if (value.length <= 7) {
+                        value = value.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+                      } else {
+                        value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                      }
+
+                      setPhoneInput(value);
+                    }}
+                    data-testid="phone-input"
+                    autoFocus
+                  />
+                </div>
               </>
             )}
 
