@@ -144,9 +144,9 @@ export default function Dashboard() {
       {/* Welcome with barbershop info */}
       <View style={styles.welcome}>
         <View style={styles.welcomeRow}>
-          {getLogoSource() && (
+          {/*{getLogoSource() && (
             <Image source={getLogoSource()!} style={styles.shopLogo} />
-          )}
+          )}*/}
           <View style={{ flex: 1 }}>
             <Text style={[styles.welcomeText, { color: theme.text }]}>Ola, {user?.name}!</Text>
             {barbershop && (
@@ -157,7 +157,7 @@ export default function Dashboard() {
             </Text>
           </View>
         </View>
-        {barbershop?.phone && (
+        {/*{barbershop?.phone && (
           <View style={styles.shopInfoRow}>
             <Ionicons name="call-outline" size={14} color={theme.textMuted} />
             <Text style={[styles.shopInfoText, { color: theme.textMuted }]}>{barbershop.phone}</Text>
@@ -168,7 +168,7 @@ export default function Dashboard() {
             <Ionicons name="location-outline" size={14} color={theme.textMuted} />
             <Text style={[styles.shopInfoText, { color: theme.textMuted }]} numberOfLines={1}>{barbershop.address}</Text>
           </View>
-        )}
+        )}*/}
       </View>
 
       {/* Stats */}
