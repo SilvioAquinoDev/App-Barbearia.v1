@@ -3,13 +3,13 @@ import api from '../services/api';
 
 const AuthContext = createContext();
 
+const AUTH_URL = 'https://auth.emergentagent.com';
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  useEffect(() => { checkAuth(); }, []);
 
   const checkAuth = async () => {
     const token = localStorage.getItem('client_token');
@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const response = await api.get('/auth/me');
         setUser(response.data);
-      } catch (error) {
+      } catch {
         localStorage.removeItem('client_token');
         delete api.defaults.headers.common['Authorization'];
       }
@@ -28,15 +28,9 @@ export function AuthProvider({ children }) {
 
   const handleOAuthCallback = async (sessionId) => {
     try {
-      /*const response = await api.post('/auth/session', null, {
+      const response = await api.post('/auth/session', null, {
         params: { session_id: sessionId }
-      });*/
-
-      // Mudança: enviar session_id no corpo da requisição
-      const response = await api.post('/auth/session', {
-        session_id: sessionId  // ← Agora vai no body
       });
-
       const { user: userData, session_token } = response.data;
       localStorage.setItem('client_token', session_token);
       api.defaults.headers.common['Authorization'] = `Bearer ${session_token}`;
@@ -48,20 +42,20 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const startLogin = () => {
+    const redirectUrl = `${window.location.origin}/auth-callback`;
+    window.location.href = `${AUTH_URL}/?redirect=${encodeURIComponent(redirectUrl)}`;
+  };
+
   const logout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem('client_token');
-      delete api.defaults.headers.common['Authorization'];
-      setUser(null);
-    }
+    try { await api.post('/auth/logout'); } catch {}
+    localStorage.removeItem('client_token');
+    delete api.defaults.headers.common['Authorization'];
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, logout, checkAuth, handleOAuthCallback }}>
+    <AuthContext.Provider value={{ user, setUser, loading, logout, checkAuth, handleOAuthCallback, startLogin }}>
       {children}
     </AuthContext.Provider>
   );
@@ -69,8 +63,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 }

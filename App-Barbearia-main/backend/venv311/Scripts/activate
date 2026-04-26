@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Dev.em.Transição\App-Barbearia-main\backend\venv311"
+VIRTUAL_ENV="C:\Dev.em.Transição\Sistema-Barber\App-Barbearia.v1\App-Barbearia-main\backend\venv311"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

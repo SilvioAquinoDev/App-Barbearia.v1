@@ -1,6 +1,7 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
+import { BarbershopProvider } from './contexts/BarbershopContext'
 
 // Pages
 import Home from './pages/Home'
@@ -12,6 +13,7 @@ import Dashboard from './pages/Dashboard'
 import History from './pages/History'
 import Promotions from './pages/Promotions'
 import Loyalty from './pages/Loyalty'
+import PixPayment from './pages/PixPayment'
 
 // Components
 import Loading from './components/Loading'
@@ -23,7 +25,7 @@ function PrivateRoute({ children }) {
   return user ? children : <Navigate to="/login" />;
 }
 
-function App() {
+function AppContent() {
   return (
     <Routes>
       {/* Public Routes */}
@@ -32,6 +34,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/registrar" element={<Register />} />
       <Route path="/auth-callback" element={<AuthCallback />} />
+      <Route path="/pagamento-pix" element={<PixPayment />} />
 
       {/* Private Routes */}
       <Route
@@ -67,6 +70,14 @@ function App() {
         }
       />
     </Routes>
+  )
+}
+
+function App() {
+  return (
+    <BarbershopProvider>
+      <AppContent />
+    </BarbershopProvider>
   )
 }
 

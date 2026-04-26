@@ -147,84 +147,39 @@ async def list_clients(
     return clients
 
 
-
-# Adicione ao final do seu arquivo clients.py (backend)
-
-class UpdateClientRequest(BaseModel):
+class ClientUpdateRequest(BaseModel):
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
-    birth_date: Optional[date] = None
+    birth_date: Optional[str] = None
 
 
-@router.put("/{client_id}")
+@router.put("/{user_id}")
 async def update_client(
-    client_id: str,
-    client_data: UpdateClientRequest,
+    user_id: str,
+    data: ClientUpdateRequest,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_barber),
 ):
-    """Update a registered client (user with role='client')"""
-    # Buscar o usuário pelo ID
-    result = await db.execute(
-        select(User).where(User.user_id == client_id, User.role == "client")
-    )
+    """Update client information"""
+    from fastapi import HTTPException
+    result = await db.execute(select(User).where(User.user_id == user_id))
     user = result.scalar_one_or_none()
-    
     if not user:
-        raise HTTPException(status_code=404, detail="Cliente não encontrado")
-    
-    # Atualizar os dados
-    user.name = client_data.name
-    user.email = client_data.email
-    user.phone = client_data.phone
-    user.birth_date = client_data.birth_date
-    
+        raise HTTPException(404, "Cliente nao encontrado")
+
+    user.name = data.name
+    if data.email is not None:
+        user.email = data.email
+    if data.phone is not None:
+        user.phone = data.phone
+    if data.birth_date is not None:
+        from datetime import datetime
+        try:
+            user.birth_date = datetime.strptime(data.birth_date, "%Y-%m-%d").date() if data.birth_date else None
+        except ValueError:
+            pass
+
     await db.commit()
-    await db.refresh(user)
-    
-    return {
-        "id": user.user_id,
-        "name": user.name,
-        "email": user.email,
-        "phone": user.phone,
-        "birth_date": user.birth_date.isoformat() if user.birth_date else None,
-        "message": "Cliente atualizado com sucesso"
-    }
+    return {"message": "Cliente atualizado com sucesso"}
 
-
-@router.get("/{client_id}")
-async def get_client(
-    client_id: str,
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_barber),
-):
-    """Get a specific client by ID"""
-    result = await db.execute(
-        select(User).where(User.user_id == client_id, User.role == "client")
-    )
-    user = result.scalar_one_or_none()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="Cliente não encontrado")
-    
-    # Get appointment stats
-    stats = await db.execute(
-        select(func.count(Appointment.id), func.max(Appointment.scheduled_time)).where(
-            (Appointment.client_id == user.user_id) | (Appointment.client_email == user.email)
-        )
-    )
-    row = stats.first()
-    total = row[0] if row else 0
-    last = row[1].strftime("%d/%m/%Y %H:%M") if row and row[1] else None
-    
-    return {
-        "id": user.user_id,
-        "name": user.name,
-        "email": user.email,
-        "phone": user.phone,
-        "birth_date": user.birth_date.isoformat() if user.birth_date else None,
-        "total_appointments": total,
-        "last_appointment": last,
-        "source": "registered",
-    }

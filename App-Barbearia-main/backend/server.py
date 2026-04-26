@@ -19,7 +19,9 @@ from routes import public_routes, schedule_routes, whatsapp_routes, product_sale
 from routes import loyalty_routes, promotion_routes, report_routes, photo_routes
 from routes import barbershop_routes
 from routes import web_push_routes, evolution_routes
+from routes import google_auth_routes, payment_routes, financial_report_routes
 from services.reminder_scheduler import reminder_scheduler_loop, send_appointment_reminders
+from services.supabase_storage import ensure_buckets
 
 settings = get_settings()
 
@@ -39,6 +41,12 @@ async def lifespan(app: FastAPI):
         logger.info("Database initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
+    
+    # Initialize Supabase storage buckets
+    try:
+        await ensure_buckets()
+    except Exception as e:
+        logger.error(f"Supabase bucket init: {e}")
     
     # Start background reminder scheduler
     reminder_task = asyncio.create_task(reminder_scheduler_loop())
@@ -81,10 +89,10 @@ app.add_middleware(
     allow_origins=["http://127.0.0.1:8081",
     "http://localhost:3001",
     "http://localhost:8081",
-    "http://10.0.0.170:8081",
-    "http://192.168.1.10:8081",
-    "http://10.0.0.170:3001",
-    "http://192.168.1.10:3001"],
+    "http://10.0.0.174:8081",
+    "http://192.168.0.14:8081",
+    "http://10.0.0.174:3001",
+    "http://192.168.0.14:3001"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -118,6 +126,15 @@ app.include_router(web_push_routes.router, prefix="/api")
 
 # Evolution API routes
 app.include_router(evolution_routes.router, prefix="/api")
+
+# Google OAuth routes (direct Google Sign-In)
+app.include_router(google_auth_routes.router, prefix="/api")
+
+# Payment routes (Mercado Pago Pix)
+app.include_router(payment_routes.router, prefix="/api")
+
+# Enhanced financial reports
+app.include_router(financial_report_routes.router, prefix="/api")
 
 # Serve uploaded product images
 uploads_dir = ROOT_DIR / "uploads" / "products"

@@ -27,6 +27,8 @@ function InnerLayout() {
         <Stack.Screen name="service-photos" />
         <Stack.Screen name="barbershop-setup" />
         <Stack.Screen name="evolution-settings" />
+        <Stack.Screen name="client-edit" />
+        <Stack.Screen name="first-access-setup" />
       </Stack>
     </>
   );

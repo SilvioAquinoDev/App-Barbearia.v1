@@ -1,0 +1,31 @@
+# Render Configuration
+# Deploy: Connect GitHub repo to Render dashboard
+# Docs: https://docs.render.com/deploy-fastapi
+
+services:
+  - type: web
+    name: barbershop-api
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: MERCADOPAGO_TOKEN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+    autoDeploy: true
+    plan: starter

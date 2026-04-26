@@ -24,6 +24,7 @@ export default function BarbershopSetup() {
   const [saving, setSaving] = useState(false);
   const [logoUri, setLogoUri] = useState<string | null>(null);
   const [form, setForm] = useState({
+    personal_phone: '',
     name: '',
     phone: '',
     address: '',
@@ -53,6 +54,14 @@ export default function BarbershopSetup() {
     }
     setSaving(true);
     try {
+      // Save personal phone
+      if (form.personal_phone.trim()) {
+        await api.put('/auth/update-profile', {
+          phone: form.personal_phone.trim(),
+        });
+      }
+
+      // Create barbershop
       await api.post('/barbershop/', {
         name: form.name.trim(),
         phone: form.phone.trim() || null,
@@ -112,6 +121,20 @@ export default function BarbershopSetup() {
             </View>
           )}
         </TouchableOpacity>
+
+        <Text style={[styles.label, { color: theme.text }]}>Seu Telefone Pessoal / WhatsApp</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
+          value={form.personal_phone}
+          onChangeText={(v) => setForm({ ...form, personal_phone: v })}
+          placeholder="(00) 00000-0000"
+          placeholderTextColor={theme.textMuted}
+          keyboardType="phone-pad"
+          data-testid="barbershop-personal-phone-input"
+        />
+
+        <View style={[styles.divider, { backgroundColor: theme.divider }]} />
+        <Text style={[styles.sectionTitle, { color: theme.primary }]}>Dados da Barbearia</Text>
 
         <Text style={[styles.label, { color: theme.text }]}>Nome da Barbearia *</Text>
         <TextInput
@@ -182,4 +205,6 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', marginBottom: 6, marginTop: 16 },
   input: { borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
   textArea: { height: 80, textAlignVertical: 'top' },
+  divider: { height: 1, marginTop: 24, marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4, marginTop: 8 },
 });

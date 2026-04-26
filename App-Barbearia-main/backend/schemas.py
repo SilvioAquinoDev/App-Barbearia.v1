@@ -17,6 +17,7 @@ class UserResponse(BaseModel):
     role: str
     phone: Optional[str]
     birth_date: Optional[date] = None
+    barbershop_id: Optional[int] = None
     created_at: datetime
     
     class Config:
@@ -84,6 +85,8 @@ class AppointmentCreate(BaseModel):
     service_id: int
     scheduled_time: datetime
     notes: Optional[str] = None
+    is_redeeming_reward: bool = False
+    reward_description: Optional[str] = None
 
 class AppointmentUpdate(BaseModel):
     status: Optional[str] = None
@@ -98,10 +101,39 @@ class AppointmentResponse(BaseModel):
     status: str
     client_name: Optional[str] = None
     client_phone: Optional[str] = None
+    client_email: Optional[str] = None
     notes: Optional[str] = None
     notification_sent: bool
     created_at: datetime
     updated_at: datetime
+    is_redeeming_reward: Optional[bool] = False
+    reward_description: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+# Public Booking Schema (para agendamento sem autenticação)
+class PublicBookingCreate(BaseModel):
+    client_name: str = Field(..., min_length=2, max_length=255)
+    client_phone: str = Field(..., min_length=8, max_length=20)
+    client_email: Optional[EmailStr] = None
+    service_id: int
+    scheduled_time: datetime
+    notes: Optional[str] = None
+    is_redeeming_reward: bool = False
+    reward_description: Optional[str] = None
+
+class PublicBookingResponse(BaseModel):
+    id: int
+    client_name: str
+    client_phone: str
+    client_email: Optional[str]
+    service_name: str
+    scheduled_time: datetime
+    status: str
+    is_redeeming_reward: bool
+    reward_description: Optional[str]
     
     class Config:
         from_attributes = True
@@ -176,3 +208,91 @@ class FinancialReport(BaseModel):
     total_revenue: float
     services_count: int
     appointments_count: int
+
+# Loyalty Schemas
+class LoyaltyConfigUpdate(BaseModel):
+    points_per_real: float = 1.0
+    redemption_threshold: int = 100
+    reward_description: str = "1 Corte Grátis"
+    is_active: bool = True
+
+class LoyaltyPointsResponse(BaseModel):
+    client_email: Optional[str]
+    client_phone: Optional[str]
+    client_name: Optional[str]
+    points: int
+    total_earned: int
+    total_redeemed: int
+    redemption_threshold: int
+    reward_description: str
+
+class LoyaltyTransactionResponse(BaseModel):
+    id: int
+    type: str  # earn or redeem
+    points: int
+    description: str
+    created_at: datetime
+    appointment_id: Optional[int]
+
+class ManualPointsAdd(BaseModel):
+    client_email: Optional[EmailStr] = None
+    client_phone: Optional[str] = None
+    client_name: Optional[str] = None
+    points: int = Field(..., gt=0)
+    description: str = "Pontos manuais"
+
+class RedeemPointsRequest(BaseModel):
+    client_email: EmailStr
+
+class AvailableSlotsResponse(BaseModel):
+    date: str
+    slots: List[str]
+
+# Barber Shop Schemas
+class BarbershopCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255)
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class BarbershopResponse(BaseModel):
+    id: int
+    name: str
+    address: Optional[str]
+    phone: Optional[str]
+    email: Optional[str]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Notification Schemas
+class NotificationResponse(BaseModel):
+    id: int
+    user_id: str
+    title: str
+    body: str
+    data: Optional[dict]
+    read: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Working Hours Schemas
+class WorkingHoursUpdate(BaseModel):
+    day_of_week: int = Field(..., ge=0, le=6)  # 0=Monday, 6=Sunday
+    start_time: str = Field(..., pattern=r"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    end_time: str = Field(..., pattern=r"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    is_working: bool = True
+
+class WorkingHoursResponse(BaseModel):
+    id: int
+    barbershop_id: int
+    day_of_week: int
+    start_time: str
+    end_time: str
+    is_working: bool
+    
+    class Config:
+        from_attributes = True

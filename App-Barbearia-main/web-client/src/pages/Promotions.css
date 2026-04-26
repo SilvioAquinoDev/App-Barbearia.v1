@@ -99,15 +99,9 @@ img {
   white-space: nowrap;
 }
 
-@media (max-width: 480px) {
-  .promo-badge {
-    white-space: normal;
-    font-size: 0.7rem;
-    padding: 4px 12px;
-  }
-}
-
-.promo-card h2 {
+/* Centralizar título da promoção */
+.promo-title {
+  text-align: center;
   font-size: 1.8rem;
   color: var(--text-primary);
   margin-bottom: 16px;
@@ -123,6 +117,7 @@ img {
   word-break: break-word;
 }
 
+/* Estilo para o código clicável */
 .promo-code {
   background: var(--bg-input);
   padding: 16px;
@@ -137,11 +132,31 @@ img {
   width: 100%;
 }
 
+.promo-code.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.promo-code.clickable:hover {
+  background: var(--bg-input-hover, #f0f0f0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .code-label {
   font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 600;
   word-break: break-word;
+}
+
+.code-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .code-value {
@@ -155,15 +170,40 @@ img {
   text-align: right;
 }
 
-@media (max-width: 480px) {
-  .promo-code {
-    flex-direction: column;
-    text-align: center;
+.copy-icon {
+  font-size: 1.2rem;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.promo-code.clickable:hover .copy-icon {
+  opacity: 1;
+}
+
+.copy-success {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  animation: fadeInUp 0.3s ease;
+  z-index: 10;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
   }
-  
-  .code-value {
-    text-align: center;
-    font-size: 1.1rem;
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -193,13 +233,6 @@ img {
   cursor: pointer;
   transition: all 0.3s;
   white-space: nowrap;
-}
-
-@media (max-width: 480px) {
-  .btn-use-promo {
-    white-space: normal;
-    width: 100%;
-  }
 }
 
 .btn-use-promo:hover {
@@ -265,7 +298,7 @@ img {
     max-width: 100%;
   }
   
-  .promo-card h2 {
+  .promo-title {
     font-size: 1.5rem;
     margin-top: 5px;
   }
@@ -286,6 +319,15 @@ img {
   
   .code-value {
     font-size: 1.2rem;
+  }
+  
+  .copy-icon {
+    font-size: 1rem;
+  }
+  
+  .copy-success {
+    font-size: 0.7rem;
+    bottom: -25px;
   }
   
   .promo-valid {
@@ -343,7 +385,7 @@ img {
     font-size: 0.65rem;
   }
   
-  .promo-card h2 {
+  .promo-title {
     font-size: 1.3rem;
     margin-bottom: 12px;
   }
@@ -354,17 +396,34 @@ img {
   }
   
   .promo-code {
+    flex-direction: column;
+    text-align: center;
     padding: 10px;
     margin-bottom: 16px;
   }
   
+  .code-container {
+    justify-content: center;
+    width: 100%;
+  }
+  
   .code-label {
-    font-size: 0.8rem;
+    text-align: center;
   }
   
   .code-value {
+    text-align: center;
     font-size: 1rem;
     letter-spacing: 1px;
+  }
+  
+  .copy-icon {
+    font-size: 0.9rem;
+  }
+  
+  .copy-success {
+    font-size: 0.65rem;
+    bottom: -22px;
   }
   
   .promo-valid {
@@ -405,7 +464,7 @@ img {
     font-size: 1.5rem;
   }
   
-  .promo-card h2 {
+  .promo-title {
     font-size: 1.2rem;
   }
   
@@ -417,8 +476,29 @@ img {
     font-size: 0.9rem;
   }
   
+  .copy-icon {
+    font-size: 0.8rem;
+  }
+  
+  .copy-success {
+    font-size: 0.6rem;
+    padding: 3px 8px;
+  }
+  
   .promo-info li {
     font-size: 0.85rem;
+  }
+}
+
+/* Suporte para dispositivos touch */
+@media (hover: none) {
+  .promo-code.clickable:active {
+    background: var(--bg-input-hover, #f0f0f0);
+    transform: scale(0.98);
+  }
+  
+  .copy-icon {
+    opacity: 0.8;
   }
 }
 
@@ -489,151 +569,53 @@ img {
   }
 }
 
-
-
-/*.promotions-page {
-  min-height: 100vh;
-  background: var(--bg-primary);
+/* Animações e transições adicionais */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.promotions-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
+.copy-success {
+  animation: fadeInUp 0.3s ease, pulse 0.5s ease;
 }
 
-.promotions-header {
-  text-align: center;
-  margin-bottom: 50px;
+/* Estilos para foco em acessibilidade */
+.promo-code.clickable:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-.promotions-header h1 {
-  font-size: 3rem;
-  color: var(--text-primary);
-  margin-bottom: 12px;
+/* Variáveis CSS (adicione no root se não existirem) */
+:root {
+  --bg-primary: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-input: #f8f8f8;
+  --bg-input-hover: #efefef;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --accent: #FF6B6B;
+  --accent-dark: #ff5252;
+  --border: #e0e0e0;
 }
 
-.promotions-header p {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
+/* Modo escuro (opcional) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1a1a;
+    --bg-card: #2d2d2d;
+    --bg-input: #3d3d3d;
+    --bg-input-hover: #4d4d4d;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-muted: #999999;
+    --border: #404040;
+  }
 }
-
-.promotions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 30px;
-  margin-bottom: 40px;
-}
-
-.promo-card {
-  position: relative;
-  padding: 30px !important;
-  background: var(--bg-card) !important;
-  overflow: visible;
-  border: 1px solid var(--border);
-}
-
-.promo-badge {
-  position: absolute;
-  top: -10px;
-  right: 20px;
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF3B30 100%);
-  color: white;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.promo-card h2 {
-  font-size: 1.8rem;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-  margin-top: 10px;
-}
-
-.promo-description {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-
-.promo-code {
-  background: var(--bg-input);
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid var(--border);
-}
-
-.code-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.code-value {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: var(--accent);
-  font-family: 'Courier New', monospace;
-  letter-spacing: 2px;
-}
-
-.promo-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.promo-valid {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.btn-use-promo {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-use-promo:hover {
-  background: var(--accent-dark);
-  transform: translateY(-2px);
-}
-
-.promo-info {
-  background: var(--bg-card) !important;
-  padding: 30px !important;
-  border: 1px solid var(--border);
-}
-
-.promo-info h3 {
-  font-size: 1.5rem;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-}
-
-.promo-info ol {
-  padding-left: 24px;
-}
-
-.promo-info li {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-  line-height: 1.6;
-}*/

@@ -4,18 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 from pydantic import BaseModel
-from pathlib import Path
-import shutil
-import uuid
 
 from database import get_db
 from auth import get_current_user, get_current_barber
 from models import Barbershop, User
+from services.supabase_storage import upload_file
 
 router = APIRouter(prefix="/barbershop", tags=["barbershop"])
-
-UPLOADS_DIR = Path(__file__).parent.parent / "uploads" / "barbershop"
-UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class BarbershopCreate(BaseModel):
@@ -133,13 +128,13 @@ async def upload_barbershop_logo(
         raise HTTPException(status_code=404, detail="Barbearia nao encontrada. Cadastre primeiro.")
 
     ext = file.filename.split(".")[-1] if file.filename and "." in file.filename else "png"
-    filename = f"logo_{shop.id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = UPLOADS_DIR / filename
+    file_data = await file.read()
+    try:
+        logo_url = await upload_file("barbershop-logos", file_data, f"logo.{ext}", file.content_type or "image/png")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro no upload: {e}")
 
-    with open(filepath, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-
-    shop.logo_url = f"/api/uploads/barbershop/{filename}"
+    shop.logo_url = logo_url
     await db.commit()
     await db.refresh(shop)
 
