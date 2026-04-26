@@ -107,6 +107,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="schedule" options={{ href: null }} />
       <Tabs.Screen name="loyalty" options={{ href: null }} />
       <Tabs.Screen name="reports" options={{ href: null }} />
+      <Tabs.Screen name="promotions-manage" options={{title: 'Gestão', href: null }} />
     </Tabs>
   );
 }
