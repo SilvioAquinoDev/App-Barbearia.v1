@@ -11,7 +11,16 @@ export default function Index() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.replace('/(tabs)');
+        // First access: barber without barbershop -> setup
+        if (user.role === 'barber' && !user.barbershop_id) {
+          router.replace('/barbershop-setup');
+        }
+        // First access: user without phone -> setup profile
+        else if (!user.phone) {
+          router.replace('/first-access-setup');
+        } else {
+          router.replace('/(tabs)');
+        }
       } else {
         router.replace('/login');
       }
@@ -26,7 +35,5 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
 });

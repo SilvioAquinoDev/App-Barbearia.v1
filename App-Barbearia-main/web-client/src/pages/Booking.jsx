@@ -16,6 +16,7 @@ export default function Booking() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
   const [phoneWarning, setPhoneWarning] = useState('');
+  const [isRedeemingReward, setIsRedeemingReward] = useState(false);
 
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -34,6 +35,35 @@ export default function Booking() {
       setClientEmail(user.email || '');
     }
   }, [user]);
+
+  // Verifica se é um resgate de prêmio
+  useEffect(() => {
+    const isRedeeming = localStorage.getItem('redeemingReward') === 'true';
+    const rewardDesc = localStorage.getItem('rewardDescription');
+    const clientEmailFromLoyalty = localStorage.getItem('clientEmail');
+    
+    if (isRedeeming && rewardDesc) {
+      setIsRedeemingReward(true);
+      
+      // Adiciona observação automática
+      const redeemNote = `🎁 RESGATE DE PRÊMIO: ${rewardDesc} - Cliente resgatou seu prêmio do programa de fidelidade. Aguardando confirmação do barbeiro para concluir o resgate.`;
+      
+      setNotes(prevNotes => {
+        if (prevNotes && !prevNotes.includes(redeemNote)) {
+          return `${prevNotes}\n\n${redeemNote}`;
+        }
+        return redeemNote;
+      });
+      
+      if (clientEmailFromLoyalty) {
+        setClientEmail(clientEmailFromLoyalty);
+      }
+      
+      setTimeout(() => {
+        alert(`🎉 Parabéns! Você está resgatando seu prêmio: ${rewardDesc}\n\nSeu agendamento será registrado e o barbeiro irá confirmar o resgate quando finalizar o serviço.`);
+      }, 500);
+    }
+  }, []);
 
   const loadServices = async () => {
     try {
@@ -89,10 +119,9 @@ export default function Booking() {
       return;
     }
 
-    // Compare phone with user's registered phone
     const cleanPhone = (p) => p.replace(/[\s\-\(\)\+]/g, '');
     if (user?.phone && cleanPhone(clientPhone) !== cleanPhone(user.phone)) {
-      setPhoneWarning('O telefone informado e diferente do cadastrado no seu perfil. Deseja continuar?');
+      setPhoneWarning('O telefone informado é diferente do cadastrado no seu perfil. Deseja continuar?');
       return;
     }
 
@@ -103,14 +132,21 @@ export default function Booking() {
     setPhoneWarning('');
     setLoading(true);
     try {
-      const response = await api.post('/public/book', {
+      const isRedeeming = localStorage.getItem('redeemingReward') === 'true';
+      const rewardDesc = localStorage.getItem('rewardDescription');
+      
+      const bookingData = {
         client_name: clientName.trim(),
         client_phone: clientPhone.trim(),
         client_email: clientEmail.trim() || null,
         service_id: selectedService.id,
         scheduled_time: selectedSlot.datetime_iso,
         notes: notes.trim() || null,
-      });
+        is_redeeming_reward: isRedeeming,
+        reward_description: rewardDesc || null
+      };
+      
+      const response = await api.post('/public/book', bookingData);
       setBookingResult(response.data);
       setStep(5);
     } catch (error) {
@@ -132,6 +168,7 @@ export default function Booking() {
     setNotes('');
     setBookingResult(null);
     setSlots([]);
+    setIsRedeemingReward(false);
   };
 
   return (
@@ -227,6 +264,26 @@ export default function Booking() {
         {step === 4 && (
           <div className="booking-step">
             <h2>Seus Dados</h2>
+            
+            {isRedeemingReward && (
+              <div style={{
+                backgroundColor: '#ff9800',
+                color: 'white',
+                padding: '12px',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                textAlign: 'center'
+              }}>
+                🎁 <strong>Resgate de Prêmio!</strong> Você está utilizando seu prêmio do programa de fidelidade.
+                <div style={{ fontSize: '0.9em', marginTop: '5px' }}>
+                  Prêmio: {localStorage.getItem('rewardDescription')}
+                </div>
+                <div style={{ fontSize: '0.85em', marginTop: '8px' }}>
+                  ⚠️ O resgate será confirmado após o barbeiro finalizar seu atendimento.
+                </div>
+              </div>
+            )}
+            
             <Card>
               <div className="booking-summary">
                 <h3>Resumo do Agendamento</h3>
@@ -251,8 +308,8 @@ export default function Booking() {
                 <input type="tel" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} placeholder="(00) 00000-0000" data-testid="booking-phone" />
               </div>
               <div className="form-group">
-                <label>Observacoes (opcional)</label>
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Alguma preferencia?" rows={3} data-testid="booking-notes" />
+                <label>Observações (opcional)</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Alguma preferência?" rows={3} data-testid="booking-notes" />
               </div>
             </Card>
 
@@ -292,6 +349,21 @@ export default function Booking() {
                 <div className="detail-row"><span>Status</span><strong className="status-pending">Pendente</strong></div>
               </div>
             </Card>
+
+            {isRedeemingReward && (
+              <div style={{
+                backgroundColor: '#ff9800',
+                padding: '15px',
+                borderRadius: '8px',
+                marginTop: '20px',
+                textAlign: 'center'
+              }}>
+                <strong>🎁 Importante:</strong> Seu prêmio será resgatado após o barbeiro confirmar e concluir seu atendimento.
+                <div style={{ fontSize: '0.9em', marginTop: '8px' }}>
+                  Prêmio: {localStorage.getItem('rewardDescription')}
+                </div>
+              </div>
+            )}
 
             <p className="confirmation-note">O barbeiro irá confirmar seu agendamento em breve.</p>
             <button className="btn-new-booking" onClick={resetBooking}>Fazer novo agendamento</button>

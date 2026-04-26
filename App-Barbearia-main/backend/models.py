@@ -16,6 +16,7 @@ class User(Base):
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     birth_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     web_push_subscription: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    barbershop_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("barbershops.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -41,6 +42,7 @@ class Service(Base):
     price: Mapped[float] = mapped_column(Float, nullable=False)
     duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    barbershop_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("barbershops.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -55,6 +57,7 @@ class Product(Base):
     stock: Mapped[int] = mapped_column(Integer, default=0)
     image_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    barbershop_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("barbershops.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -72,13 +75,23 @@ class Appointment(Base):
     client_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     notification_sent: Mapped[bool] = mapped_column(Boolean, default=False)
+    barbershop_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("barbershops.id"), nullable=True)
+    payment_status: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    payment_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    payment_amount: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    
+    # Novos campos para resgate de prêmio do programa de fidelidade
+    is_redeeming_reward: Mapped[bool] = mapped_column(Boolean, default=False)
+    reward_description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     client: Mapped[Optional[User]] = relationship("User", back_populates="appointments", foreign_keys=[client_id])
     service: Mapped[Service] = relationship("Service")
-
+    loyalty_transactions: Mapped[List["LoyaltyTransaction"]] = relationship("LoyaltyTransaction", back_populates="appointment")
 
 class BarberAvailability(Base):
     """Barber schedule/availability model"""
@@ -136,7 +149,6 @@ class PushToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-
 class ProductSale(Base):
     """Product sale record"""
     __tablename__ = "product_sales"
@@ -149,7 +161,6 @@ class ProductSale(Base):
     total_price: Mapped[float] = mapped_column(Float)
     client_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
 
 class WhatsAppSettings(Base):
     """WhatsApp Business API settings"""
@@ -167,7 +178,6 @@ class WhatsAppSettings(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-
 class LoyaltyConfig(Base):
     """Loyalty program configuration"""
     __tablename__ = "loyalty_config"
@@ -180,7 +190,6 @@ class LoyaltyConfig(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
 
 class LoyaltyPoints(Base):
     """Client loyalty points"""
@@ -196,19 +205,21 @@ class LoyaltyPoints(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-
 class LoyaltyTransaction(Base):
     """Loyalty points transaction history"""
     __tablename__ = "loyalty_transactions"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     client_phone: Mapped[str] = mapped_column(String(30), index=True)
+    client_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     type: Mapped[str] = mapped_column(String(20))  # "earn" or "redeem"
     points: Mapped[int] = mapped_column(Integer)
     description: Mapped[str] = mapped_column(String(255))
     appointment_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("appointments.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
+    
+    # Relationships
+    appointment: Mapped[Optional[Appointment]] = relationship("Appointment", back_populates="loyalty_transactions")
 
 class Promotion(Base):
     """Promotions created by barber"""
@@ -224,7 +235,6 @@ class Promotion(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-
 class Barbershop(Base):
     """Barbershop entity for SaaS multi-tenancy"""
     __tablename__ = "barbershops"
@@ -238,7 +248,6 @@ class Barbershop(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-
 class ServicePhoto(Base):
     """Photos for services/portfolio"""
     __tablename__ = "service_photos"
@@ -248,4 +257,3 @@ class ServicePhoto(Base):
     photo_data: Mapped[str] = mapped_column(Text)  # base64 encoded
     caption: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-

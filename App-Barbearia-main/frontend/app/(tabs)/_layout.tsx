@@ -3,11 +3,9 @@ import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -15,10 +13,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: theme.tabBarActive,
         tabBarInactiveTintColor: theme.tabBarInactive,
         tabBarStyle: {
-          height: Platform.OS === 'android' ? 60 + insets.bottom : 60,
-          paddingBottom: Platform.OS === 'android' ? insets.bottom : 18,
-          //height: Platform.OS === 'android' ? 70 : 60,
-          //paddingBottom: Platform.OS === 'android' ? 16 : 8,
+          height: Platform.OS === 'android' ? 70 : 60,
+          paddingBottom: Platform.OS === 'android' ? 16 : 8,
           paddingTop: 8,
           backgroundColor: theme.tabBarBg,
           borderTopWidth: 1,
@@ -107,8 +103,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="schedule" options={{ href: null }} />
       <Tabs.Screen name="loyalty" options={{ href: null }} />
       <Tabs.Screen name="reports" options={{ href: null }} />
-      <Tabs.Screen name="promotions-manage" options={{title: 'Gestão', href: null }} />
-      <Tabs.Screen name="edit-client" options={{ href: null }} />
     </Tabs>
   );
 }

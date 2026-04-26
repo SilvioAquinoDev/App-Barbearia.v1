@@ -4,18 +4,14 @@ from sqlalchemy import select
 from typing import List, Optional
 from pydantic import BaseModel
 import base64
-import uuid
-from pathlib import Path
 
 from database import get_db
 from auth import get_current_barber
 from models import Product
 from schemas import ProductCreate, ProductUpdate, ProductResponse
+from services.supabase_storage import upload_file
 
 router = APIRouter(prefix="/products", tags=["products"])
-
-UPLOAD_DIR = Path(__file__).parent.parent / "uploads" / "products"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ImageUpload(BaseModel):
@@ -158,16 +154,15 @@ async def upload_product_image(
 
         image_bytes = base64.b64decode(image_b64)
         ext = "jpg"
+        content_type = "image/jpeg"
         if image_bytes[:4] == b"\x89PNG":
             ext = "png"
+            content_type = "image/png"
         elif image_bytes[:4] == b"RIFF":
             ext = "webp"
+            content_type = "image/webp"
 
-        filename = f"{uuid.uuid4().hex}.{ext}"
-        filepath = UPLOAD_DIR / filename
-        filepath.write_bytes(image_bytes)
-
-        image_url = f"/api/uploads/products/{filename}"
+        image_url = await upload_file("product-images", image_bytes, f"product.{ext}", content_type)
         return {"image_url": image_url}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao salvar imagem: {str(e)}")

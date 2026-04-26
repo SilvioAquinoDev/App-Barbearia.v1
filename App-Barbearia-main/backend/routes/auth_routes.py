@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
-from pydantic import BaseModel
 
 from database import get_db
 from auth import exchange_session_id, create_user_session, get_current_user
@@ -10,19 +9,14 @@ from schemas import UserResponse
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
-# Create a Pydantic model for the request body
-class SessionRequest(BaseModel):
-    session_id: str
-
 @router.post("/session")
 async def create_session(
-    request_data: SessionRequest,  # Use Pydantic model instead of raw string
+    session_id: str,
     response: Response,
     db: AsyncSession = Depends(get_db)
 ):
     """Exchange session_id for session_token"""
     
-    session_id = request_data.session_id
     print(f"🔐 [AUTH] Recebido session_id: {session_id[:20]}...")
     
     try:

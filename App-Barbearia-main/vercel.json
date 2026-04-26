@@ -1,0 +1,18 @@
+# Vercel Serverless Configuration
+# Deploy: vercel --prod
+# Docs: https://vercel.com/docs/functions/runtimes/python
+
+{
+  "builds": [
+    {
+      "src": "backend/server.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/server.py"
+    }
+  ]
+}
