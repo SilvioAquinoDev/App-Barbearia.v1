@@ -42,27 +42,45 @@ export default function Login() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
         <View style={styles.header}>
-          {getLogoSource() ? (
+          {/*{getLogoSource() ? (
             <Image source={getLogoSource()!} style={styles.logo} data-testid="login-logo" />
           ) : (
             <View style={[styles.logoPlaceholder, { backgroundColor: theme.primary + '18' }]}>
               <Ionicons name="storefront" size={48} color={theme.primary} />
             </View>
-          )}
+          )}*/}
           <Text style={[styles.title, { color: theme.text }]}>{shopInfo?.name || 'Barbershop Manager'}</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Gerencie sua barbearia de forma simples e eficiente</Text>
         </View>
 
-        <View style={styles.features}>
+        <View style={styles.imageContainer}>
+          {getLogoSource() ? (
+            <Image
+              source={require('../assets/images/logotype.png')}
+              style={styles.logos}
+              resizeMode="contain"
+            />
+          ) : (
+            <Image
+              source={require('../assets/images/logotype.png')}
+              style={styles.logos}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+
+
+
+        {/*<View style={styles.features}>
           <FeatureItem icon="calendar" text="Gerenciar agendamentos" theme={theme} />
           <FeatureItem icon="cut" text="Controlar servicos" theme={theme} />
           <FeatureItem icon="cash" text="Controle de caixa" theme={theme} />
           <FeatureItem icon="bar-chart" text="Relatorios financeiros" theme={theme} />
-        </View>
+        </View>*/}
 
         <View style={styles.footer}>
           <Button title="Entrar com Google" onPress={handleLogin} loading={loading} />
-          <View style={styles.divider}>
+          {/*<View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: theme.divider }]} />
             <Text style={[styles.dividerText, { color: theme.textMuted }]}>ou</Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.divider }]} />
@@ -75,7 +93,7 @@ export default function Login() {
               <Ionicons name="settings-outline" size={16} color={theme.primary} />
               <Text style={[styles.serverConfigText, { color: theme.primary }]}>Configurar Servidor Local</Text>
             </TouchableOpacity>
-          )}
+          )}*/}
         </View>
       </View>
     </SafeAreaView>
@@ -93,8 +111,35 @@ function FeatureItem({ icon, text, theme }: { icon: string; text: string; theme:
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  /*imageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  // Estilo atualizado para a logo
+  logos: {
+    width: '100%',
+    height: undefined,
+    aspectRatio: 1, // Mantém a proporção da imagem
+    maxWidth: 300, // Tamanho máximo em telas grandes
+    maxHeight: 400,
+  },*/
+
+  imageContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginVertical: 20,
+},
+logos: {
+  width: '100%', // Usa 90% da largura disponível
+  height: undefined,
+  aspectRatio: 1, // Mantém proporção 1:1
+  maxHeight: 500, // Limita a 70% da altura do container
+},
   content: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between', paddingTop: 60, paddingBottom: 40 },
-  header: { alignItems: 'center' },
+  header: { alignItems: 'center', marginTop: 50 },
   logo: { width: 100, height: 100, borderRadius: 50, marginBottom: 20 },
   logoPlaceholder: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
@@ -102,7 +147,7 @@ const styles = StyleSheet.create({
   features: { marginTop: 40 },
   featureItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1 },
   featureText: { fontSize: 16, fontWeight: '500' },
-  footer: { marginTop: 40 },
+  footer: { marginTop: 40, marginBottom: 100 },
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
   dividerLine: { flex: 1, height: 1 },
   dividerText: { marginHorizontal: 12, fontSize: 14 },

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, A
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import api from '../../src/services/api';
+import { useRouter } from 'expo-router';
 
 const PERIODS = [{ key: 'day', label: 'Hoje' }, { key: 'week', label: 'Semana' }, { key: 'month', label: 'Mes' }];
 
@@ -14,6 +15,7 @@ export default function Reports() {
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
 
   const loadData = useCallback(async () => {
     try {
@@ -28,11 +30,27 @@ export default function Reports() {
 
   const maxRevenue = Math.max(...dailyData.map((d: any) => d.services + d.products), 1);
 
+  // Função para navegar para a página de gestão
+  const handleGoToGestao = () => {
+    router.push('/(tabs)/management');
+  };
+
   if (loading) return <View style={[styles.container, { backgroundColor: theme.background }]}><ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} /></View>;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor={theme.primary} />}>
+        
+        <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}>
+                <TouchableOpacity onPress={handleGoToGestao} style={styles.backBtn}>
+                  <Ionicons name="arrow-back" size={24} color={theme.text} />
+                </TouchableOpacity>
+                <Text style={[styles.title, { color: theme.text }]}>Relatorios</Text>
+                {/*<TouchableOpacity onPress={openAdd} style={styles.addHeaderBtn} data-testid="add-promotion-btn">
+                  <Ionicons name="add" size={34} color={theme.primary} />
+                </TouchableOpacity>*/}
+              </View>
+        
         <View style={[styles.periodBar, { backgroundColor: theme.dark ? theme.border : '#E8E8E8' }]}>
           {PERIODS.map((p) => (
             <TouchableOpacity key={p.key} style={[styles.periodBtn, period === p.key && { backgroundColor: theme.primary }]} onPress={() => setPeriod(p.key)} data-testid={`period-${p.key}`}>
@@ -114,8 +132,18 @@ function StatCard({ icon, color, value, label, theme }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  periodBar: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, borderRadius: 10, padding: 3 },
+  container: { flex: 1},
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 22,
+    borderBottomWidth: 1
+  },
+  backBtn: { padding: 4 },
+  title: { flex: 1, fontSize: 20, fontWeight: '700', marginLeft: 12 },
+  addHeaderBtn: { padding: 4, marginRight: 20 },
+  periodBar: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, marginTop: 16, borderRadius: 10, padding: 3 },
   periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   periodText: { fontSize: 14, fontWeight: '600' },
   revenueCard: { margin: 16, marginTop: 0, borderRadius: 16, padding: 20 },
